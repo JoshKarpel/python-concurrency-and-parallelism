@@ -45,11 +45,16 @@ def clamp(min_: int, val: int, max_: int) -> int:
 @component
 def root() -> Div:
     return Div(
-        style=col | border_star,
+        style=col,
         children=[
-            Text(content="foo", style=border_light),
-            Text(content="bar", style=border_light),
-            Text(content="baz", style=border_light),
+            Div(
+                style=col,
+                children=[
+                    # Text(content="foo", style=border_light),
+                    # Text(content="bar", style=border_light),
+                    # Text(content="baz", style=border_light),
+                ],
+            ),
             footer(current_slide=5, total_slides=10),
         ],
     )
@@ -58,18 +63,18 @@ def root() -> Div:
 @component
 def footer(current_slide: int, total_slides: int) -> Div:
     return Div(
-        style=row | justify_children_space_between | weight_none | align_self_stretch | border_slate_400 | border_light,
+        style=row
+        | justify_children_space_between
+        | weight_none
+        | align_self_stretch
+        | border_slate_400
+        | border_light
+        | border_top,
         children=[
             Text(
                 content=[
                     Chunk(
                         content="Python Concurrency & Parallelism",
-                    ),
-                    Chunk(
-                        content=" | ",
-                    ),
-                    Chunk(
-                        content="Josh Karpel",
                     ),
                 ],
                 style=text_slate_200,
