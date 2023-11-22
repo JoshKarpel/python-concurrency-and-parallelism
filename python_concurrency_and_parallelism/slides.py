@@ -209,7 +209,7 @@ def definitions() -> Div:
                         style=weight_none,
                     ),
                     Text(
-                        content=colored_bar((14, 2), (6, 6)),
+                        content=colored_bar((14, 2), (6, 3)),
                         style=weight_none,
                     ),
                     Text(
@@ -217,7 +217,7 @@ def definitions() -> Div:
                         style=weight_none,
                     ),
                     Text(
-                        content=colored_bar((20, 3)),
+                        content=colored_bar((20, 6)),
                         style=weight_none,
                     ),
                     Text(
