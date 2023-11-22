@@ -3,43 +3,20 @@ import random
 from asyncio import sleep
 from itertools import product
 
-from more_itertools import grouper
 from reprisal.app import app
-from reprisal.cell_paint import CellPaint
 from reprisal.components import Chunk, Div, Text, component
+from reprisal.events import KeyPressed
 from reprisal.hooks import use_effect, use_state
+from reprisal.keys import Key
 from reprisal.styles.styles import COLORS_BY_NAME
 from reprisal.styles.utilities import *
 from structlog import get_logger
 
+from python_concurrency_and_parallelism.utils import canvas, clamp
+
 logger = get_logger()
 
-black = Color.from_name("black")
-
-
-def canvas(
-    width: int,
-    height: int,
-    cells: dict[tuple[int, int], Color],
-) -> list[CellPaint]:
-    c = []
-    for y_top, y_bot in grouper(range(height), 2):
-        for x in range(width):
-            c.append(
-                CellPaint(
-                    char="▀",
-                    style=CellStyle(
-                        foreground=cells.get((x, y_top), black),
-                        background=cells.get((x, y_bot), black),
-                    ),
-                )
-            )
-        c.append(CellPaint(char="\n"))
-    return c[:-1]  # strip off last newline
-
-
-def clamp(min_: int, val: int, max_: int) -> int:
-    return max(min_, min(val, max_))
+full_block = "█"
 
 
 @component
@@ -48,11 +25,9 @@ def root() -> Div:
         style=col,
         children=[
             Div(
-                style=col,
+                style=col | align_self_stretch,
                 children=[
-                    # Text(content="foo", style=border_light),
-                    # Text(content="bar", style=border_light),
-                    # Text(content="baz", style=border_light),
+                    processes_and_threads_in_memory(),
                 ],
             ),
             footer(current_slide=5, total_slides=10),
@@ -97,27 +72,73 @@ def footer(current_slide: int, total_slides: int) -> Div:
     )
 
 
-moves = [(x, y) for x, y in product((-1, 0, 1), repeat=2) if (x, y) != (0, 0)]
+@component
+def processes_and_threads_in_memory() -> Div:
+    w, h = 20, 20
 
-w, h = 30, 30
-n = 30
+    n_procs, set_n_procs = use_state(1)
+
+    def on_key(event: KeyPressed) -> None:
+        if event.key == "p":
+            set_n_procs(lambda n: clamp(1, n + 1, 5))
+
+    return Div(
+        style=col | align_self_stretch | border_light,
+        children=[
+            Div(
+                style=row | align_children_center,
+                children=[
+                    Text(
+                        content=[
+                            Chunk(content="Starting New"),
+                            Chunk.space(),
+                            Chunk(content="Processes", style=CellStyle(foreground=lime_600)),
+                        ],
+                        style=pad_x_2 | weight_none,
+                    ),
+                    Div(style=row, children=[random_walkers(w, h, False) for _ in range(n_procs)]),
+                ],
+            ),
+            Div(
+                style=row | align_children_center,
+                children=[
+                    Text(
+                        content=[
+                            Chunk(content="Starting New"),
+                            Chunk.space(),
+                            Chunk(content="Threads".ljust(len("Processes")), style=CellStyle(foreground=pink_600)),
+                        ],
+                        style=pad_x_2 | weight_none,
+                    ),
+                    Div(
+                        style=row,
+                        children=[random_walkers(w, h, True)],
+                    ),
+                ],
+            ),
+        ],
+        on_key=on_key,
+    )
+
+
+moves = [(x, y) for x, y in product((-1, 0, 1), repeat=2) if (x, y) != (0, 0)]
 
 
 @component
-def random_walkers() -> Text:
-    colors, set_colors = use_state(random.sample(list(COLORS_BY_NAME.values()), k=n))
-    walkers, set_walkers = use_state([(random.randrange(w), random.randrange(h)) for _ in range(len(colors))])
+def random_walkers(width: int, height: int, threads: bool) -> Text:
+    colors, set_colors = use_state(random.sample(list(COLORS_BY_NAME.values()), k=1))
+    walkers, set_walkers = use_state([(random.randrange(width), random.randrange(height)) for _ in range(len(colors))])
+
+    def on_key(event: KeyPressed) -> None:
+        if (event.key == "t" and threads) or (event.key == Key.ControlP and not threads):
+            set_colors(lambda c: [*c, random.choice(list(COLORS_BY_NAME.values()))])
+            set_walkers(lambda m: [*m, (random.randrange(width), random.randrange(height))])
 
     def update_movers(m: list[tuple[int, int]]) -> list[tuple[int, int]]:
         new = []
         for x, y in m:
             dx, dy = random.choice(moves)
-            new.append(
-                (
-                    clamp(0, x + dx, w - 1),
-                    clamp(0, y + dy, h - 1),
-                )
-            )
+            new.append((clamp(0, x + dx, width - 1), clamp(0, y + dy, height - 1)))
         return new
 
     async def tick() -> None:
@@ -130,12 +151,13 @@ def random_walkers() -> Text:
     return Text(
         content=(
             canvas(
-                width=w,
-                height=h,
+                width=width,
+                height=height,
                 cells=dict(zip(walkers, colors)),
             )
         ),
         style=border_heavy | border_slate_400,
+        on_key=on_key,
     )
 
 
