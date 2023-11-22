@@ -1,6 +1,7 @@
 import asyncio
 import random
 from asyncio import sleep
+from datetime import datetime
 from itertools import product
 
 from reprisal.app import app
@@ -21,22 +22,43 @@ full_block = "█"
 
 @component
 def root() -> Div:
+    slides = [
+        processes_and_threads_in_memory,
+        processes_and_threads_in_memory,
+    ]
+
+    current_slide, set_current_slide = use_state(0)
+
+    def on_key(event: KeyPressed) -> None:
+        if event.key == Key.Right:
+            set_current_slide(lambda n: clamp(0, n + 1, len(slides) - 1))
+        elif event.key == Key.Left:
+            set_current_slide(lambda n: clamp(0, n - 1, len(slides) - 1))
+
     return Div(
         style=col,
         children=[
             Div(
                 style=col | align_self_stretch,
-                children=[
-                    processes_and_threads_in_memory(),
-                ],
+                children=[slides[current_slide]()],
             ),
-            footer(current_slide=5, total_slides=10),
+            footer(current_slide=current_slide + 1, total_slides=len(slides)),
         ],
+        on_key=on_key,
     )
 
 
 @component
 def footer(current_slide: int, total_slides: int) -> Div:
+    current_time, set_current_time = use_state(datetime.now())
+
+    async def tick() -> None:
+        while True:
+            await sleep(1 / 60)
+            set_current_time(datetime.now())
+
+    use_effect(tick, deps=())
+
     return Div(
         style=row
         | justify_children_space_between
@@ -54,6 +76,7 @@ def footer(current_slide: int, total_slides: int) -> Div:
                 ],
                 style=text_slate_200,
             ),
+            Text(content=f"{current_time:%Y-%m-%d %I:%M %p}", style=text_slate_200),
             Text(
                 content=[
                     Chunk(
@@ -83,7 +106,7 @@ def processes_and_threads_in_memory() -> Div:
             set_n_procs(lambda n: clamp(1, n + 1, 5))
 
     return Div(
-        style=col | align_self_stretch | border_light,
+        style=col | align_self_stretch,
         children=[
             Div(
                 style=row | align_children_center,
@@ -91,10 +114,10 @@ def processes_and_threads_in_memory() -> Div:
                     Text(
                         content=[
                             Chunk(content="Starting New"),
-                            Chunk.space(),
+                            Chunk.newline(),
                             Chunk(content="Processes", style=CellStyle(foreground=lime_600)),
                         ],
-                        style=pad_x_2 | weight_none,
+                        style=pad_x_2 | weight_none | text_justify_center,
                     ),
                     Div(style=row, children=[random_walkers(w, h, False) for _ in range(n_procs)]),
                 ],
@@ -105,10 +128,10 @@ def processes_and_threads_in_memory() -> Div:
                     Text(
                         content=[
                             Chunk(content="Starting New"),
-                            Chunk.space(),
-                            Chunk(content="Threads".ljust(len("Processes")), style=CellStyle(foreground=pink_600)),
+                            Chunk.newline(),
+                            Chunk(content="Threads", style=CellStyle(foreground=pink_600)),
                         ],
-                        style=pad_x_2 | weight_none,
+                        style=pad_x_2 | weight_none | text_justify_center,
                     ),
                     Div(
                         style=row,
