@@ -28,6 +28,7 @@ def root() -> Div:
     slides = [
         title,
         you_may_have_heard,
+        definitions,
         processes_and_threads_in_memory,
     ]
 
@@ -108,6 +109,130 @@ def title() -> Div:
             Text(content="Josh Karpel", style=weight_none),
             Text(content="MadPy, May 2024", style=weight_none | text_gray_400),
         ],
+    )
+
+
+palette = [Color.from_hex(c) for c in ("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d")]
+
+
+def colored_bar(*blocks: tuple[int, int]) -> list[Chunk]:
+    return [Chunk(content=full_block * n, style=CellStyle(foreground=palette[c])) for n, c in blocks]
+
+
+def time_arrow(length: int) -> Text:
+    return Text(
+        content="Time " + ("─" * length) + "→",
+        style=weight_none,
+    )
+
+
+@component
+def definitions() -> Div:
+    arrow_shift, set_arrow_shift = use_state(0)
+
+    arrow = Chunk(content=" " * arrow_shift + "↑", style=CellStyle(foreground=python_blue))
+
+    async def tick() -> None:
+        while True:
+            await sleep(0.25)
+            set_arrow_shift(lambda n: (n + 1) % 20)
+
+    use_effect(tick, deps=())
+
+    half_and_half_div_style = col | align_children_center
+    color_bar_div_style = col | border_heavy | border_gray_400 | pad_1
+
+    concurrency = Div(
+        # TODO: gap_children_N is broken here?
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[Chunk(content="Concurrency", style=CellStyle(underline=True))],
+                style=weight_none | pad_bottom_1,
+            ),
+            Text(
+                content=[
+                    Chunk(content="Tasks are"),
+                    Chunk.space(),
+                    Chunk(content="interleaved", style=CellStyle(foreground=green_600)),
+                ],
+                style=weight_none | pad_bottom_1,
+            ),
+            Div(
+                style=color_bar_div_style,
+                children=[
+                    Text(
+                        content=colored_bar((3, 0), (2, 1), (1, 2), (5, 0), (2, 2), (3, 3), (1, 1), (3, 0)),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    time_arrow(14),
+                ],
+            ),
+        ],
+    )
+    parallelism = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[Chunk(content="Parallelism", style=CellStyle(underline=True))],
+                style=weight_none | pad_bottom_1,
+            ),
+            Text(
+                content=[
+                    Chunk(content="Tasks are"),
+                    Chunk.space(),
+                    Chunk(content="simultaneous", style=CellStyle(foreground=green_600)),
+                ],
+                style=weight_none | pad_bottom_1,
+            ),
+            Div(
+                style=color_bar_div_style,
+                children=[
+                    Text(
+                        content=colored_bar((20, 0)),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=colored_bar((11, 1), (9, 5)),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=colored_bar((14, 2), (6, 6)),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=colored_bar((20, 3)),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    time_arrow(14),
+                ],
+            ),
+        ],
+    )
+
+    return Div(
+        style=row | align_self_stretch | align_children_center | justify_children_space_around,
+        children=[concurrency, parallelism],
     )
 
 
