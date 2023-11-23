@@ -106,7 +106,15 @@ def title() -> Div:
     return Div(
         style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
         children=[
-            Text(content="Concurrency & Parallelism in Python", style=weight_none),
+            Div(
+                style=border_lightshade | border_bottom_right | border_contract_1 | border_gray_400 | weight_none,
+                children=[
+                    Text(
+                        content="Concurrency & Parallelism in Python",
+                        style=weight_none | border_heavy | border_gray_200,
+                    ),
+                ],
+            ),
             Text(content="Josh Karpel", style=weight_none),
             Text(content="MadPy, May 2024", style=weight_none | text_gray_400),
         ],
@@ -311,7 +319,7 @@ def processes_and_threads_in_memory() -> Div:
 
     def on_key(event: KeyPressed) -> None:
         if event.key == "p":
-            set_n_procs(lambda n: clamp(1, n + 1, 5))
+            set_n_procs(lambda n: clamp(1, n + 1, 3))
 
     return Div(
         style=col | align_self_stretch,
