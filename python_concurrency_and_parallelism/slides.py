@@ -140,7 +140,7 @@ def definitions() -> Div:
     use_effect(tick, deps=())
 
     half_and_half_div_style = col | align_children_center
-    color_bar_div_style = col | border_heavy | border_gray_400 | pad_1
+    color_bar_div_style = col | border_heavy | border_gray_400 | pad_x_1
 
     concurrency = Div(
         # TODO: gap_children_N is broken here?
