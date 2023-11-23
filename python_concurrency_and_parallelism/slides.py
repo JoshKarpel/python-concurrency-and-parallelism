@@ -30,6 +30,7 @@ def root() -> Div:
         you_may_have_heard,
         definitions,
         processes_and_threads_in_memory,
+        memory_sharing_and_multitasking,
     ]
 
     current_slide, set_current_slide = use_state(0)
@@ -139,7 +140,7 @@ def definitions() -> Div:
 
     use_effect(tick, deps=())
 
-    half_and_half_div_style = col | align_children_center
+    half_and_half_div_style = col | align_children_center | gap_children_1
     color_bar_div_style = col | border_heavy | border_gray_400 | pad_x_1
 
     concurrency = Div(
@@ -148,7 +149,7 @@ def definitions() -> Div:
         children=[
             Text(
                 content=[Chunk(content="Concurrency", style=CellStyle(underline=True))],
-                style=weight_none | pad_bottom_1,
+                style=weight_none,
             ),
             Text(
                 content=[
@@ -156,7 +157,7 @@ def definitions() -> Div:
                     Chunk.space(),
                     Chunk(content="interleaved", style=CellStyle(foreground=green_600)),
                 ],
-                style=weight_none | pad_bottom_1,
+                style=weight_none,
             ),
             Div(
                 style=color_bar_div_style,
@@ -179,7 +180,7 @@ def definitions() -> Div:
         children=[
             Text(
                 content=[Chunk(content="Parallelism", style=CellStyle(underline=True))],
-                style=weight_none | pad_bottom_1,
+                style=weight_none,
             ),
             Text(
                 content=[
@@ -187,7 +188,7 @@ def definitions() -> Div:
                     Chunk.space(),
                     Chunk(content="simultaneous", style=CellStyle(foreground=green_600)),
                 ],
-                style=weight_none | pad_bottom_1,
+                style=weight_none,
             ),
             Div(
                 style=color_bar_div_style,
@@ -388,6 +389,57 @@ def random_walkers(width: int, height: int, threads: bool) -> Text:
         ),
         style=border_heavy | border_slate_400,
         on_key=on_key,
+    )
+
+
+@component
+def memory_sharing_and_multitasking() -> Div:
+    revealed, set_revealed = use_state(False)
+
+    def on_key(event: KeyPressed) -> None:
+        if event.key == Key.Space:
+            set_revealed(toggle)
+
+    table = [
+        ["Scheduling", "+", "Memory", "=", "Tool"],
+        ["Preemptive", "+", "Shared", "=", "Threads"],
+        ["Preemptive", "+", "Isolated", "=", "Processes"],
+        ["Cooperative", "+", "Shared", "=", "Async"],
+    ]
+    revealable = ["Cooperative", "+", "Isolated", "=", "Queues / Actors"]
+    if revealed:
+        table.append(revealable)
+    else:
+        table.append([" " * len(s) for s in revealable])
+
+    return Div(
+        style=col | align_self_stretch | align_children_center | justify_children_center,
+        on_key=on_key,
+        children=[
+            Div(
+                style=row | align_self_stretch | align_children_center | justify_children_center | weight_none,
+                children=[
+                    Div(
+                        style=col | weight_none,
+                        children=[
+                            Text(
+                                style=weight_none
+                                | pad_x_1
+                                | (
+                                    border_heavy | border_slate_400
+                                    if r == 0 and c != 1 and c != 3
+                                    else pad_y_1 | pad_x_2
+                                )
+                                | (text_amber_500 if r == 4 else None),
+                                content=table[r][c],
+                            )
+                            for r in range(len(table))
+                        ],
+                    )
+                    for c in range(len(table[0]))
+                ],
+            )
+        ],
     )
 
 
