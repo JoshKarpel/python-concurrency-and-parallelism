@@ -1,8 +1,12 @@
 import asyncio
 import random
 from asyncio import sleep
-from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from itertools import product
+from math import floor
+from sys import getswitchinterval
+from time import time_ns
+from typing import Type
 
 from reprisal.app import app
 from reprisal.components import Chunk, Div, Text, component
@@ -13,7 +17,7 @@ from reprisal.styles.styles import COLORS_BY_NAME
 from reprisal.styles.utilities import *
 from structlog import get_logger
 
-from python_concurrency_and_parallelism.utils import canvas, clamp
+from python_concurrency_and_parallelism.utils import black, canvas, clamp
 
 logger = get_logger()
 
@@ -26,11 +30,12 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 @component
 def root() -> Div:
     slides = [
-        title,
-        you_may_have_heard,
-        definitions,
-        processes_and_threads_in_memory,
-        memory_sharing_and_multitasking,
+        # title,
+        # you_may_have_heard,
+        # definitions,
+        # processes_and_threads_in_memory,
+        # memory_sharing_and_multitasking,
+        what_the_gil_actually_does,
     ]
 
     current_slide, set_current_slide = use_state(0)
@@ -56,14 +61,14 @@ def root() -> Div:
 
 @component
 def footer(current_slide: int, total_slides: int) -> Div:
-    current_time, set_current_time = use_state(datetime.now())
-
-    async def tick() -> None:
-        while True:
-            await sleep(1 / 60)
-            set_current_time(datetime.now())
-
-    use_effect(tick, deps=())
+    # current_time, set_current_time = use_state(datetime.now())
+    #
+    # async def tick() -> None:
+    #     while True:
+    #         await sleep(1 / 60)
+    #         set_current_time(datetime.now())
+    #
+    # use_effect(tick, deps=())
 
     return Div(
         style=row
@@ -82,7 +87,7 @@ def footer(current_slide: int, total_slides: int) -> Div:
                 ],
                 style=text_slate_200,
             ),
-            Text(content=f"{current_time:%Y-%m-%d %I:%M %p}", style=text_slate_200),
+            # Text(content=f"{current_time:%Y-%m-%d %I:%M %p}", style=text_slate_200),
             Text(
                 content=[
                     Chunk(
@@ -124,8 +129,11 @@ def title() -> Div:
 palette = [Color.from_hex(c) for c in ("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d")]
 
 
-def colored_bar(*blocks: tuple[int, int]) -> list[Chunk]:
-    return [Chunk(content=full_block * n, style=CellStyle(foreground=palette[c])) for n, c in blocks]
+def colored_bar(*blocks: tuple[int, int | None]) -> list[Chunk]:
+    return [
+        Chunk(content=full_block * n, style=CellStyle(foreground=palette[c] if c is not None else black))
+        for n, c in blocks
+    ]
 
 
 def time_arrow(length: int) -> Text:
@@ -152,7 +160,6 @@ def definitions() -> Div:
     color_bar_div_style = col | border_heavy | border_gray_400 | pad_x_1
 
     concurrency = Div(
-        # TODO: gap_children_N is broken here?
         style=half_and_half_div_style,
         children=[
             Text(
@@ -448,6 +455,108 @@ def memory_sharing_and_multitasking() -> Div:
                 ],
             )
         ],
+    )
+
+
+def track_activity(start_time: int, stop_time: float, offset: int, buckets: int, bucket_size_ns: float) -> list[int]:
+    tracker = [0 for _ in range(offset + buckets + offset + 10)]
+
+    while True:
+        current_time = time_ns()
+        delta_ns = current_time - start_time
+
+        if delta_ns > stop_time:
+            break
+
+        bucket = floor(delta_ns / bucket_size_ns)
+        tracker[bucket] += 1
+
+    return tracker
+
+
+@component
+def what_the_gil_actually_does() -> Div:
+    bucket_size_ns = (getswitchinterval() / 5) * 1e9
+    buckets = 80
+    offset = 500
+    total_buckets = offset + buckets + offset
+    stop_time = total_buckets * bucket_size_ns
+    zeros = [0] * total_buckets
+
+    N = 4
+
+    thread_results, set_thread_results = use_state([zeros] * N)
+    process_results, set_process_results = use_state([zeros] * N)
+
+    def run_experiment(executor_type: Type[ThreadPoolExecutor] | Type[ProcessPoolExecutor]) -> list[list[int]]:
+        with executor_type(max_workers=N) as executor:
+            start_time = time_ns()
+            trackers = [
+                executor.submit(
+                    track_activity,
+                    start_time,
+                    stop_time,
+                    offset,
+                    buckets,
+                    bucket_size_ns,
+                )
+                for _ in range(N)
+            ]
+
+        return [tracker.result() for tracker in trackers]
+
+    def on_key(event: KeyPressed) -> None:
+        if event.key == "t":
+            set_thread_results(run_experiment(ThreadPoolExecutor))
+        elif event.key == "p":
+            set_process_results(run_experiment(ProcessPoolExecutor))
+
+    half_and_half_div_style = col | align_children_center | gap_children_1
+    color_bar_div_style = col | border_heavy | border_gray_400 | pad_x_1
+
+    concurrency = Div(
+        style=half_and_half_div_style,
+        on_key=on_key,
+        children=[
+            Text(
+                content=[Chunk(content=f"{N} Threads")],
+                style=weight_none,
+            ),
+            Div(
+                style=color_bar_div_style,
+                children=[
+                    Text(
+                        content=colored_bar(*((1, n if t > 0 else None) for t in tracker[offset : offset + buckets])),
+                        style=weight_none,
+                    )
+                    for n, tracker in enumerate(thread_results)
+                ],
+            ),
+        ],
+    )
+    parallelism = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[Chunk(content=f"{N} Processes")],
+                style=weight_none,
+            ),
+            Div(
+                style=color_bar_div_style,
+                children=[
+                    Text(
+                        content=colored_bar(*((1, n if t > 0 else None) for t in tracker[offset : offset + buckets])),
+                        style=weight_none,
+                    )
+                    for n, tracker in enumerate(process_results)
+                ],
+            ),
+        ],
+    )
+
+    return Div(
+        style=col | align_self_stretch | align_children_center | justify_children_space_around,
+        children=[concurrency, parallelism],
     )
 
 
