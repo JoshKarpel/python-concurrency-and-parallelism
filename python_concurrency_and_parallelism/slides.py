@@ -30,11 +30,11 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 @component
 def root() -> Div:
     slides = [
-        # title,
-        # you_may_have_heard,
-        # definitions,
-        # processes_and_threads_in_memory,
-        # memory_sharing_and_multitasking,
+        title,
+        you_may_have_heard,
+        definitions,
+        processes_and_threads_in_memory,
+        memory_sharing_and_multitasking,
         what_the_gil_actually_does,
     ]
 
@@ -129,11 +129,8 @@ def title() -> Div:
 palette = [Color.from_hex(c) for c in ("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d")]
 
 
-def colored_bar(*blocks: tuple[int, int | None]) -> list[Chunk]:
-    return [
-        Chunk(content=full_block * n, style=CellStyle(foreground=palette[c] if c is not None else black))
-        for n, c in blocks
-    ]
+def colored_bar(*blocks: tuple[int, Color]) -> list[Chunk]:
+    return [Chunk(content=full_block * n, style=CellStyle(foreground=c)) for n, c in blocks]
 
 
 def time_arrow(length: int) -> Text:
@@ -178,7 +175,16 @@ def definitions() -> Div:
                 style=color_bar_div_style,
                 children=[
                     Text(
-                        content=colored_bar((3, 0), (2, 1), (1, 2), (5, 0), (2, 2), (3, 3), (1, 1), (3, 0)),
+                        content=colored_bar(
+                            (3, palette[0]),
+                            (2, palette[1]),
+                            (1, palette[2]),
+                            (5, palette[0]),
+                            (2, palette[2]),
+                            (3, palette[3]),
+                            (1, palette[1]),
+                            (3, palette[0]),
+                        ),
                         style=weight_none,
                     ),
                     Text(
@@ -209,7 +215,7 @@ def definitions() -> Div:
                 style=color_bar_div_style,
                 children=[
                     Text(
-                        content=colored_bar((20, 0)),
+                        content=colored_bar((20, palette[0])),
                         style=weight_none,
                     ),
                     Text(
@@ -217,7 +223,7 @@ def definitions() -> Div:
                         style=weight_none,
                     ),
                     Text(
-                        content=colored_bar((11, 1), (9, 5)),
+                        content=colored_bar((11, palette[1]), (9, palette[5])),
                         style=weight_none,
                     ),
                     Text(
@@ -225,7 +231,7 @@ def definitions() -> Div:
                         style=weight_none,
                     ),
                     Text(
-                        content=colored_bar((14, 2), (6, 3)),
+                        content=colored_bar((14, palette[2]), (6, palette[3])),
                         style=weight_none,
                     ),
                     Text(
@@ -233,7 +239,7 @@ def definitions() -> Div:
                         style=weight_none,
                     ),
                     Text(
-                        content=colored_bar((20, 6)),
+                        content=colored_bar((20, palette[6])),
                         style=weight_none,
                     ),
                     Text(
@@ -477,9 +483,9 @@ def track_activity(start_time: int, stop_time: float, offset: int, buckets: int,
 @component
 def what_the_gil_actually_does() -> Div:
     bucket_size_ns = (getswitchinterval() / 5) * 1e9
-    buckets = 80
+    buckets = 100
     offset = 500
-    total_buckets = offset + buckets + offset
+    total_buckets = offset + buckets + (offset // 2)
     stop_time = total_buckets * bucket_size_ns
     zeros = [0] * total_buckets
 
@@ -512,25 +518,25 @@ def what_the_gil_actually_does() -> Div:
             set_process_results(run_experiment(ProcessPoolExecutor))
 
     half_and_half_div_style = col | align_children_center | gap_children_1
-    color_bar_div_style = col | border_heavy | border_gray_400 | pad_x_1
+    color_bar_div_style = col | border_heavy | border_gray_400
+
+    biggest_count_thread = max(max(tracker) for tracker in thread_results) or 1
+    biggest_count_process = max(max(tracker) for tracker in process_results) or 1
+
+    thread_bars = make_activity_bars(biggest_count_thread, buckets, offset, thread_results)
+    process_bars = make_activity_bars(biggest_count_process, buckets, offset, process_results)
 
     concurrency = Div(
         style=half_and_half_div_style,
         on_key=on_key,
         children=[
             Text(
-                content=[Chunk(content=f"{N} Threads")],
+                content=[Chunk(content=f"{N} Threads in 1 Process")],
                 style=weight_none,
             ),
             Div(
                 style=color_bar_div_style,
-                children=[
-                    Text(
-                        content=colored_bar(*((1, n if t > 0 else None) for t in tracker[offset : offset + buckets])),
-                        style=weight_none,
-                    )
-                    for n, tracker in enumerate(thread_results)
-                ],
+                children=thread_bars,
             ),
         ],
     )
@@ -538,18 +544,12 @@ def what_the_gil_actually_does() -> Div:
         style=half_and_half_div_style,
         children=[
             Text(
-                content=[Chunk(content=f"{N} Processes")],
+                content=[Chunk(content=f"{N} Processes, 1 Thread Each")],
                 style=weight_none,
             ),
             Div(
                 style=color_bar_div_style,
-                children=[
-                    Text(
-                        content=colored_bar(*((1, n if t > 0 else None) for t in tracker[offset : offset + buckets])),
-                        style=weight_none,
-                    )
-                    for n, tracker in enumerate(process_results)
-                ],
+                children=process_bars,
             ),
         ],
     )
@@ -558,6 +558,29 @@ def what_the_gil_actually_does() -> Div:
         style=col | align_self_stretch | align_children_center | justify_children_space_around,
         children=[concurrency, parallelism],
     )
+
+
+def make_activity_bars(
+    biggest_count_thread: int,
+    buckets: int,
+    offset: int,
+    thread_results: list[list[int]],
+) -> list[Text]:
+    return [
+        Text(
+            content=[
+                Chunk(content=f"  T{n} "),
+                *colored_bar(
+                    *(
+                        (1, black.blend(palette[n], t / biggest_count_thread))
+                        for t in tracker[offset : offset + buckets]
+                    )
+                ),
+            ],
+            style=weight_none,
+        )
+        for n, tracker in enumerate(thread_results)
+    ] + [time_arrow(10)]
 
 
 asyncio.run(app(root))
