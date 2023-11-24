@@ -39,6 +39,7 @@ def root() -> Div:
         what_the_gil_actually_does,
         rule_1,
         rule_2,
+        blocking_the_event_loop,
     ]
 
     current_slide, set_current_slide = use_state(0)
@@ -183,26 +184,6 @@ def rule_1() -> Div:
             drop_shadow(
                 Text(
                     content=content,
-                    style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
-                ),
-            ),
-        ],
-    )
-
-
-@component
-def rule_2() -> Div:
-    return Div(
-        style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
-        children=[
-            drop_shadow(
-                Text(
-                    content=[
-                        Chunk(content="Rule #2", style=CellStyle(underline=True)),
-                        Chunk.newline(),
-                        Chunk.newline(),
-                        Chunk(content="Don't block the event loop"),
-                    ],
                     style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
                 ),
             ),
@@ -653,7 +634,7 @@ def make_activity_bars(
     return [
         Text(
             content=[
-                Chunk(content=f"  T{n} "),
+                Chunk(content=f"   {n} "),
                 *colored_bar(
                     *((1, black.blend(palette[n], t / biggest_count)) for t in tracker[offset : offset + buckets])
                 ),
@@ -664,6 +645,94 @@ def make_activity_bars(
         )
         for n, tracker in enumerate(thread_results)
     ] + [time_arrow(10)]
+
+
+@component
+def rule_2() -> Div:
+    return Div(
+        style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
+        children=[
+            drop_shadow(
+                Text(
+                    content=[
+                        Chunk(content="Rule #2", style=CellStyle(underline=True)),
+                        Chunk.newline(),
+                        Chunk.newline(),
+                        Chunk(content="The event loop runs on a single thread"),
+                    ],
+                    style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
+                ),
+            ),
+        ],
+    )
+
+
+@component
+def blocking_the_event_loop() -> Div:
+    reveals, set_reveals = use_state(0)
+
+    def on_key(event: KeyPressed) -> None:
+        if event.key == Key.Space:
+            set_reveals(lambda n: n + 1)
+
+    half_and_half_div_style = col | align_children_center | gap_children_1
+
+    return Div(
+        style=row | align_self_stretch | justify_children_space_around | pad_top_3,
+        on_key=on_key,
+        children=[
+            Div(
+                style=half_and_half_div_style,
+                children=[
+                    Text(
+                        content=[
+                            Chunk(content="things that ", style=CellStyle(underline=True)),
+                            Chunk(content="do not", style=CellStyle(foreground=green_600, underline=True)),
+                            Chunk(content=" block the event loop", style=CellStyle(underline=True)),
+                        ],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[
+                            Chunk(content="await", style=CellStyle(foreground=python_blue)),
+                            Chunk(content="ing something"),
+                        ],
+                        style=weight_none,
+                    )
+                    if reveals >= 1
+                    else Text(content=""),
+                    Text(
+                        content=[
+                            Chunk(content="equivalent syntax sugar like "),
+                            Chunk(content="async for", style=CellStyle(foreground=python_blue)),
+                        ],
+                        style=weight_none,
+                    )
+                    if reveals >= 2
+                    else Text(content=""),
+                ],
+            ),
+            Div(
+                style=half_and_half_div_style,
+                children=[
+                    Text(
+                        content=[
+                            Chunk(content="things that ", style=CellStyle(underline=True)),
+                            Chunk(content="do", style=CellStyle(foreground=red_600, underline=True)),
+                            Chunk(content=" block the event loop", style=CellStyle(underline=True)),
+                        ],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content="everything else",
+                        style=weight_none,
+                    )
+                    if reveals >= 3
+                    else Text(content=""),
+                ],
+            ),
+        ],
+    )
 
 
 asyncio.run(app(root))
