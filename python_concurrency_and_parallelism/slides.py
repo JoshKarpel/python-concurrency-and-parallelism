@@ -483,7 +483,7 @@ def track_activity(start_time: int, stop_time: float, offset: int, buckets: int,
 @component
 def what_the_gil_actually_does() -> Div:
     bucket_size_ns = (getswitchinterval() / 5) * 1e9
-    buckets = 100
+    buckets = 60
     offset = 500
     total_buckets = offset + buckets + (offset // 2)
     stop_time = total_buckets * bucket_size_ns
@@ -576,6 +576,8 @@ def make_activity_bars(
                         for t in tracker[offset : offset + buckets]
                     )
                 ),
+                Chunk.space(),
+                Chunk(content=f"{sum(tracker[offset:offset + buckets]):>6}"),
             ],
             style=weight_none,
         )
