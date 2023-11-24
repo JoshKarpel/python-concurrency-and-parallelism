@@ -604,11 +604,8 @@ def what_the_gil_actually_does() -> Div:
     half_and_half_div_style = col | align_children_center | gap_children_1
     color_bar_div_style = col | border_heavy | border_gray_400
 
-    biggest_count_thread = max(max(tracker) for tracker in thread_results) or 1
-    biggest_count_process = max(max(tracker) for tracker in process_results) or 1
-
-    thread_bars = make_activity_bars(biggest_count_thread, buckets, offset, thread_results)
-    process_bars = make_activity_bars(biggest_count_process, buckets, offset, process_results)
+    thread_bars = make_activity_bars(buckets, offset, thread_results)
+    process_bars = make_activity_bars(buckets, offset, process_results)
 
     concurrency = Div(
         style=half_and_half_div_style,
@@ -645,20 +642,17 @@ def what_the_gil_actually_does() -> Div:
 
 
 def make_activity_bars(
-    biggest_count_thread: int,
     buckets: int,
     offset: int,
     thread_results: list[list[int]],
 ) -> list[Text]:
+    biggest_count = max(max(tracker[offset : offset + buckets]) for tracker in thread_results) or 1
     return [
         Text(
             content=[
                 Chunk(content=f"  T{n} "),
                 *colored_bar(
-                    *(
-                        (1, black.blend(palette[n], t / biggest_count_thread))
-                        for t in tracker[offset : offset + buckets]
-                    )
+                    *((1, black.blend(palette[n], t / biggest_count)) for t in tracker[offset : offset + buckets])
                 ),
                 Chunk.space(),
                 Chunk(content=f"{sum(tracker[offset:offset + buckets]):>6}"),
