@@ -201,7 +201,7 @@ def rule_2() -> Div:
                         Chunk(content="Rule #2", style=CellStyle(underline=True)),
                         Chunk.newline(),
                         Chunk.newline(),
-                        Chunk(content="Don't block the event loop!"),
+                        Chunk(content="Don't block the event loop"),
                     ],
                     style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
                 ),
