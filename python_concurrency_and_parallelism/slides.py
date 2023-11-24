@@ -568,7 +568,7 @@ def track_activity(start_time: int, stop_time: float, offset: int, buckets: int,
 def what_the_gil_actually_does() -> Div:
     bucket_size_ns = (getswitchinterval() / 5) * 1e9
     buckets = 60
-    offset = 500
+    offset = 300
     total_buckets = offset + buckets + (offset // 2)
     stop_time = total_buckets * bucket_size_ns
     zeros = [0] * total_buckets
@@ -604,10 +604,23 @@ def what_the_gil_actually_does() -> Div:
     half_and_half_div_style = col | align_children_center | gap_children_1
     color_bar_div_style = col | border_heavy | border_gray_400
 
-    thread_bars = make_activity_bars(buckets, offset, thread_results)
     process_bars = make_activity_bars(buckets, offset, process_results)
+    thread_bars = make_activity_bars(buckets, offset, thread_results)
 
-    concurrency = Div(
+    processes = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[Chunk(content=f"{N} Processes, 1 Thread Each")],
+                style=weight_none,
+            ),
+            Div(
+                style=color_bar_div_style,
+                children=process_bars,
+            ),
+        ],
+    )
+    threads = Div(
         style=half_and_half_div_style,
         on_key=on_key,
         children=[
@@ -621,23 +634,13 @@ def what_the_gil_actually_does() -> Div:
             ),
         ],
     )
-    parallelism = Div(
-        style=half_and_half_div_style,
-        children=[
-            Text(
-                content=[Chunk(content=f"{N} Processes, 1 Thread Each")],
-                style=weight_none,
-            ),
-            Div(
-                style=color_bar_div_style,
-                children=process_bars,
-            ),
-        ],
-    )
 
     return Div(
         style=col | align_self_stretch | align_children_center | justify_children_space_around,
-        children=[concurrency, parallelism],
+        children=[
+            processes,
+            threads,
+        ],
     )
 
 
