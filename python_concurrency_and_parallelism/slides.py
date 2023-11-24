@@ -31,11 +31,14 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 def root() -> Div:
     slides = [
         title,
+        rule_0,
         you_may_have_heard,
         definitions,
         processes_and_threads_in_memory,
         memory_sharing_and_multitasking,
         what_the_gil_actually_does,
+        rule_1,
+        rule_2,
     ]
 
     current_slide, set_current_slide = use_state(0)
@@ -106,22 +109,103 @@ def footer(current_slide: int, total_slides: int) -> Div:
     )
 
 
+def drop_shadow(*c: Text | Div) -> Div:
+    return Div(
+        style=border_lightshade | border_bottom_right | border_contract_1 | border_gray_400 | weight_none,
+        children=list(c),
+    )
+
+
 @component
 def title() -> Div:
     return Div(
         style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
         children=[
-            Div(
-                style=border_lightshade | border_bottom_right | border_contract_1 | border_gray_400 | weight_none,
-                children=[
-                    Text(
-                        content="Concurrency & Parallelism in Python",
-                        style=weight_none | border_heavy | border_gray_200,
-                    ),
-                ],
+            drop_shadow(
+                Text(
+                    content="Concurrency & Parallelism in Python",
+                    style=weight_none | border_heavy | border_gray_200 | pad_x_1,
+                ),
             ),
             Text(content="Josh Karpel", style=weight_none),
             Text(content="MadPy, May 2024", style=weight_none | text_gray_400),
+        ],
+    )
+
+
+@component
+def rule_0() -> Div:
+    return Div(
+        style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
+        children=[
+            drop_shadow(
+                Text(
+                    content=[
+                        Chunk(content="Rule #0", style=CellStyle(underline=True)),
+                        Chunk.newline(),
+                        Chunk.newline(),
+                        Chunk(content="The only thing that matters is the performance of your actual system"),
+                    ],
+                    style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
+                ),
+            ),
+        ],
+    )
+
+
+@component
+def rule_1() -> Div:
+    revealed, set_revealed = use_state(False)
+
+    content = [
+        Chunk(content="Rule #1", style=CellStyle(underline=True)),
+        Chunk.newline(),
+        Chunk.newline(),
+        Chunk(content="A Python process can never execute more Python bytecode"),
+        Chunk.newline(),
+        Chunk(content="per unit time than a single Python thread can"),
+    ]
+    if revealed:
+        content += [
+            Chunk.newline(),
+            Chunk.newline(),
+            Chunk(content="* If it has a GIL; see PEP 703", style=CellStyle(foreground=amber_600)),
+        ]
+
+    def on_key(event: KeyPressed) -> None:
+        if event.key == Key.Space:
+            set_revealed(toggle)
+
+    return Div(
+        style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
+        on_key=on_key,
+        children=[
+            drop_shadow(
+                Text(
+                    content=content,
+                    style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
+                ),
+            ),
+        ],
+    )
+
+
+@component
+def rule_2() -> Div:
+    return Div(
+        style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
+        children=[
+            drop_shadow(
+                Text(
+                    content=[
+                        Chunk(content="Rule #2", style=CellStyle(underline=True)),
+                        Chunk.newline(),
+                        Chunk.newline(),
+                        Chunk(content="Don't block the event loop!"),
+                    ],
+                    style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
+                ),
+            ),
         ],
     )
 
