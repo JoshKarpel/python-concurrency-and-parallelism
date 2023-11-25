@@ -695,7 +695,7 @@ def blocking_the_event_loop() -> Div:
                     Text(
                         content=[
                             Chunk(content="await", style=CellStyle(foreground=python_blue)),
-                            Chunk(content="ing something that isn't ready to run"),
+                            Chunk(content="ing something that isn't ready yet"),
                         ],
                         style=weight_none,
                     )
