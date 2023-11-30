@@ -1,6 +1,8 @@
 import asyncio
+import inspect
 import random
 from asyncio import sleep
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from itertools import product
 from math import floor
@@ -8,6 +10,8 @@ from sys import getswitchinterval
 from time import time_ns
 from typing import Type
 
+from pygments.lexers import get_lexer_by_name
+from pygments.styles import get_style_by_name
 from reprisal.app import app
 from reprisal.components import Chunk, Div, Text, component
 from reprisal.events import KeyPressed
@@ -30,16 +34,17 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 @component
 def root() -> Div:
     slides = [
-        title,
-        rule_0,
-        you_may_have_heard,
-        definitions,
-        processes_and_threads_in_memory,
-        memory_sharing_and_multitasking,
-        what_the_gil_actually_does,
-        rule_1,
-        rule_2,
-        blocking_the_event_loop,
+        # title,
+        # rule_0,
+        # you_may_have_heard,
+        # definitions,
+        # processes_and_threads_in_memory,
+        # memory_sharing_and_multitasking,
+        code_for_activity_tracking,
+        # what_the_gil_actually_does,
+        # rule_1,
+        # rule_2,
+        # blocking_the_event_loop,
     ]
 
     current_slide, set_current_slide = use_state(0)
@@ -529,7 +534,13 @@ def memory_sharing_and_multitasking() -> Div:
     )
 
 
-def track_activity(start_time: int, stop_time: float, offset: int, buckets: int, bucket_size_ns: float) -> list[int]:
+def track_activity(
+    start_time: int,
+    stop_time: float,
+    offset: int,
+    buckets: int,
+    bucket_size_ns: float,
+) -> list[int]:
     tracker = [0 for _ in range(offset + buckets + offset + 10)]
 
     while True:
@@ -543,6 +554,49 @@ def track_activity(start_time: int, stop_time: float, offset: int, buckets: int,
         tracker[bucket] += 1
 
     return tracker
+
+
+def make_code_example(fn: Callable[[...], object]) -> Div:
+    lexer = get_lexer_by_name("python")
+    style = get_style_by_name("github-dark")
+
+    chunks = []
+    for token, text in lexer.get_tokens(inspect.getsource(fn)):
+        s = style.style_for_token(token)
+        chunks.append(
+            Chunk(
+                content=text,
+                style=CellStyle(
+                    foreground=Color.from_hex(s.get("color") or "000000"),
+                    background=Color.from_hex(s.get("bgcolor") or "000000"),
+                    bold=s["bold"],
+                    italic=s["italic"],
+                    underline=s["underline"],
+                ),
+            )
+        )
+
+    # pygments seems to add a trailing newline even if removed from the source,
+    # probably good for files but not for slides, so pop it off
+    chunks.pop()
+
+    return Div(
+        style=col | align_self_stretch | align_children_center | justify_children_center,
+        children=[
+            Text(
+                style=weight_none
+                | pad_x_1
+                | border_heavy
+                | Style(border=Border(style=CellStyle(foreground=python_blue))),
+                content=chunks,
+            ),
+        ],
+    )
+
+
+@component
+def code_for_activity_tracking() -> Div:
+    return make_code_example(track_activity)
 
 
 @component
@@ -735,4 +789,5 @@ def blocking_the_event_loop() -> Div:
     )
 
 
-asyncio.run(app(root))
+if __name__ == "__main__":
+    asyncio.run(app(root))
