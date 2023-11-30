@@ -1,11 +1,12 @@
 import asyncio
 import inspect
 import random
+import sys
 from asyncio import sleep
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from itertools import product
-from math import floor
+from math import ceil, floor
 from sys import getswitchinterval
 from time import time_ns
 from typing import Type
@@ -34,17 +35,17 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 @component
 def root() -> Div:
     slides = [
-        # title,
-        # rule_0,
-        # you_may_have_heard,
-        # definitions,
-        # processes_and_threads_in_memory,
-        # memory_sharing_and_multitasking,
+        title,
+        rule_0,
+        you_may_have_heard,
+        definitions,
+        processes_and_threads_in_memory,
+        memory_sharing_and_multitasking,
         code_for_activity_tracking,
-        # what_the_gil_actually_does,
-        # rule_1,
-        # rule_2,
-        # blocking_the_event_loop,
+        what_the_gil_actually_does,
+        rule_1,
+        rule_2,
+        blocking_the_event_loop,
     ]
 
     current_slide, set_current_slide = use_state(0)
@@ -534,24 +535,24 @@ def memory_sharing_and_multitasking() -> Div:
     )
 
 
-def track_activity(
-    start_time: int,
-    stop_time: float,
-    offset: int,
-    buckets: int,
-    bucket_size_ns: float,
-) -> list[int]:
-    tracker = [0 for _ in range(offset + buckets + offset + 10)]
+def track_activity(start_time: float, run_for: float, bucket_size: float) -> list[int]:
+    """
+    The tracker is a list of buckets representing time slices.
+    Each bucket will be the count of how many times
+    the below loop ran during that time slice.
+    The bucket count is thus roughly proportional to
+    the amount of Python bytecode executed in that time slice.
+    """
+    tracker = [0 for _ in range(ceil(run_for / bucket_size))]
 
     while True:
-        current_time = time_ns()
-        delta_ns = current_time - start_time
+        time_since_start = time_ns() - start_time
 
-        if delta_ns > stop_time:
+        if time_since_start >= run_for:
             break
 
-        bucket = floor(delta_ns / bucket_size_ns)
-        tracker[bucket] += 1
+        bucket_index = floor(time_since_start / bucket_size)
+        tracker[bucket_index] += 1
 
     return tracker
 
@@ -601,11 +602,11 @@ def code_for_activity_tracking() -> Div:
 
 @component
 def what_the_gil_actually_does() -> Div:
-    bucket_size_ns = (getswitchinterval() / 5) * 1e9
+    bucket_size = (getswitchinterval() / 5) * 1e9
     buckets = 60
     offset = 300
     total_buckets = offset + buckets + (offset // 2)
-    stop_time = total_buckets * bucket_size_ns
+    run_for = total_buckets * bucket_size
     zeros = [0] * total_buckets
 
     N = 4
@@ -619,11 +620,9 @@ def what_the_gil_actually_does() -> Div:
             trackers = [
                 executor.submit(
                     track_activity,
-                    start_time,
-                    stop_time,
-                    offset,
-                    buckets,
-                    bucket_size_ns,
+                    start_time=start_time,
+                    run_for=run_for,
+                    bucket_size=bucket_size,
                 )
                 for _ in range(N)
             ]
@@ -675,6 +674,10 @@ def what_the_gil_actually_does() -> Div:
         children=[
             processes,
             threads,
+            Text(
+                style=weight_none | text_justify_center,
+                content=f"Bucket Size = {bucket_size / 1e6:.3f} milliseconds\nGIL Switch Interval = {sys.getswitchinterval()*1e3=:.3f} milliseconds",
+            ),
         ],
     )
 
