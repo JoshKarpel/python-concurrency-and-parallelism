@@ -35,12 +35,15 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 @component
 def root() -> Div:
     slides = [
-        title,
-        rule_0,
-        you_may_have_heard,
-        definitions,
-        processes_and_threads_in_memory,
+        # title,
+        # rule_0,
+        # you_may_have_heard,
+        # part_1,
+        # definitions,
+        # computers,
+        starting_processes_and_threads,
         memory_sharing_and_multitasking,
+        part_2,
         code_for_activity_tracking,
         what_the_gil_actually_does,
         rule_1,
@@ -90,25 +93,15 @@ def footer(current_slide: int, total_slides: int) -> Div:
         | border_top,
         children=[
             Text(
-                content=[
-                    Chunk(
-                        content="Concurrency & Parallelism in Python",
-                    ),
-                ],
+                content=[Chunk(content="Concurrency & Parallelism in Python")],
                 style=text_slate_200,
             ),
             # Text(content=f"{current_time:%Y-%m-%d %I:%M %p}", style=text_slate_200),
             Text(
                 content=[
-                    Chunk(
-                        content=f"{current_slide}",
-                    ),
-                    Chunk(
-                        content=" / ",
-                    ),
-                    Chunk(
-                        content=f"{total_slides}",
-                    ),
+                    Chunk(content=f"{current_slide}"),
+                    Chunk(content=" / "),
+                    Chunk(content=f"{total_slides}"),
                 ],
                 style=text_slate_200,
             ),
@@ -161,6 +154,46 @@ def rule_0() -> Div:
 
 
 @component
+def part_1() -> Div:
+    return Div(
+        style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
+        children=[
+            drop_shadow(
+                Text(
+                    content=[
+                        Chunk(content="Part #1", style=CellStyle(underline=True)),
+                        Chunk.newline(),
+                        Chunk.newline(),
+                        Chunk(content="How Computers Work"),
+                    ],
+                    style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
+                ),
+            ),
+        ],
+    )
+
+
+@component
+def part_2() -> Div:
+    return Div(
+        style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
+        children=[
+            drop_shadow(
+                Text(
+                    content=[
+                        Chunk(content="Part #2", style=CellStyle(underline=True)),
+                        Chunk.newline(),
+                        Chunk.newline(),
+                        Chunk(content="How Python Works"),
+                    ],
+                    style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
+                ),
+            ),
+        ],
+    )
+
+
+@component
 def rule_1() -> Div:
     revealed, set_revealed = use_state(False)
 
@@ -176,7 +209,7 @@ def rule_1() -> Div:
         content += [
             Chunk.newline(),
             Chunk.newline(),
-            Chunk(content="* If it has a GIL; see PEP 703", style=CellStyle(foreground=amber_600)),
+            Chunk(content="* For CPython with a GIL; see PEP 703", style=CellStyle(foreground=amber_600)),
         ]
 
     def on_key(event: KeyPressed) -> None:
@@ -330,6 +363,101 @@ def definitions() -> Div:
 
 
 @component
+def computers() -> Div:
+    arrow_shift, set_arrow_shift = use_state(0)
+
+    arrow = Chunk(content=" " * arrow_shift + "↑", style=CellStyle(foreground=python_blue))
+
+    async def tick() -> None:
+        while True:
+            await sleep(0.25)
+            set_arrow_shift(lambda n: (n + 1) % 20)
+
+    use_effect(tick, deps=())
+
+    half_and_half_div_style = col | align_children_center | gap_children_1
+    color_bar_div_style = col | border_heavy | border_gray_400 | pad_x_1
+
+    c = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[
+                    Chunk(content="Modern computers are usually"),
+                    Chunk.space(),
+                    Chunk(content="concurrent", style=CellStyle(foreground=green_600)),
+                    Chunk.space(),
+                    Chunk(content="and", style=CellStyle(underline=True)),
+                    Chunk.space(),
+                    Chunk(content="parallel", style=CellStyle(foreground=green_600)),
+                ],
+                style=weight_none,
+            ),
+            Div(
+                style=color_bar_div_style,
+                children=[
+                    Text(
+                        content=colored_bar(
+                            (9, palette[0]),
+                            (7, palette[1]),
+                            (4, palette[4]),
+                        ),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=colored_bar(
+                            (7, palette[1]),
+                            (5, palette[5]),
+                            (8, palette[3]),
+                        ),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=colored_bar(
+                            (3, palette[5]),
+                            (11, palette[2]),
+                            (6, palette[0]),
+                        ),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=colored_bar(
+                            (3, palette[6]),
+                            (12, palette[4]),
+                            (3, palette[2]),
+                            (2, palette[5]),
+                        ),
+                        style=weight_none,
+                    ),
+                    Text(
+                        content=[arrow],
+                        style=weight_none,
+                    ),
+                    time_arrow(14),
+                ],
+            ),
+        ],
+    )
+
+    return Div(
+        style=row | align_self_stretch | align_children_center | justify_children_space_around,
+        children=[c],
+    )
+
+
+@component
 def you_may_have_heard() -> Div:
     return Div(
         style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
@@ -396,7 +524,7 @@ def you_may_have_heard() -> Div:
 
 
 @component
-def processes_and_threads_in_memory() -> Div:
+def starting_processes_and_threads() -> Div:
     w, h = 20, 20
 
     n_procs, set_n_procs = use_state(1)
