@@ -35,12 +35,12 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 @component
 def root() -> Div:
     slides = [
-        # title,
-        # rule_0,
-        # you_may_have_heard,
-        # part_1,
-        # definitions,
-        # computers,
+        title,
+        rule_0,
+        you_may_have_heard,
+        part_1,
+        definitions,
+        computers,
         starting_processes_and_threads,
         memory_sharing_and_multitasking,
         part_2,
@@ -527,48 +527,45 @@ def you_may_have_heard() -> Div:
 def starting_processes_and_threads() -> Div:
     w, h = 20, 20
 
-    n_procs, set_n_procs = use_state(1)
-
-    def on_key(event: KeyPressed) -> None:
-        if event.key == "p":
-            set_n_procs(lambda n: clamp(1, n + 1, 3))
+    parts = ("Isolated Memory", "Shared Memory")
+    justify_width = max(len(p) for p in parts)
+    parts = [p.center(justify_width) for p in parts]
 
     return Div(
-        style=col | align_self_stretch,
+        style=col | align_self_stretch | pad_x_2,
         children=[
             Div(
-                style=row | align_children_center,
+                style=row | align_children_center | align_self_stretch,
                 children=[
                     Text(
                         content=[
-                            Chunk(content="Starting New"),
-                            Chunk.newline(),
                             Chunk(content="Processes", style=CellStyle(foreground=lime_600)),
-                        ],
-                        style=pad_x_2 | weight_none | text_justify_center,
-                    ),
-                    Div(style=row, children=[random_walkers(w, h, False) for _ in range(n_procs)]),
-                ],
-            ),
-            Div(
-                style=row | align_children_center,
-                children=[
-                    Text(
-                        content=[
-                            Chunk(content="Starting New"),
                             Chunk.newline(),
-                            Chunk(content="Threads", style=CellStyle(foreground=pink_600)),
+                            Chunk(content=parts[0]),
                         ],
                         style=pad_x_2 | weight_none | text_justify_center,
                     ),
                     Div(
-                        style=row,
-                        children=[random_walkers(w, h, True)],
+                        style=row | justify_children_center | gap_children_1,
+                        children=[random_walkers(w, h, 1) for _ in range(3)],
                     ),
                 ],
             ),
+            Div(
+                style=row | align_children_center | align_self_stretch,
+                children=[
+                    Text(
+                        content=[
+                            Chunk(content="Threads", style=CellStyle(foreground=pink_600)),
+                            Chunk.newline(),
+                            Chunk(content=parts[1]),
+                        ],
+                        style=pad_x_2 | weight_none | text_justify_center,
+                    ),
+                    Div(style=row | justify_children_center, children=[random_walkers(w, h, 6)]),
+                ],
+            ),
         ],
-        on_key=on_key,
     )
 
 
@@ -576,14 +573,9 @@ moves = [(x, y) for x, y in product((-1, 0, 1), repeat=2) if (x, y) != (0, 0)]
 
 
 @component
-def random_walkers(width: int, height: int, threads: bool) -> Text:
-    colors, set_colors = use_state(random.sample(list(COLORS_BY_NAME.values()), k=1))
+def random_walkers(width: int, height: int, threads: int) -> Text:
+    colors, set_colors = use_state(random.sample(list(COLORS_BY_NAME.values()), k=threads))
     walkers, set_walkers = use_state([(random.randrange(width), random.randrange(height)) for _ in range(len(colors))])
-
-    def on_key(event: KeyPressed) -> None:
-        if (event.key == "t" and threads) or (event.key == Key.ControlP and not threads):
-            set_colors(lambda c: [*c, random.choice(list(COLORS_BY_NAME.values()))])
-            set_walkers(lambda m: [*m, (random.randrange(width), random.randrange(height))])
 
     def update_movers(m: list[tuple[int, int]]) -> list[tuple[int, int]]:
         new = []
@@ -607,8 +599,7 @@ def random_walkers(width: int, height: int, threads: bool) -> Text:
                 cells=dict(zip(walkers, colors)),
             )
         ),
-        style=border_heavy | border_slate_400,
-        on_key=on_key,
+        style=border_heavy | border_slate_400 | weight_none,
     )
 
 

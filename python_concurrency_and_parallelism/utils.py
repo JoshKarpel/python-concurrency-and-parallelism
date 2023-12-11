@@ -1,6 +1,9 @@
 from more_itertools import grouper
 from reprisal.cell_paint import CellPaint
 from reprisal.styles.styles import CellStyle, Color
+from structlog import get_logger
+
+logger = get_logger()
 
 black = Color.from_name("black")
 
