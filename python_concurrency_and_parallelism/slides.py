@@ -3,7 +3,8 @@ import inspect
 import random
 import sys
 from asyncio import sleep
-from collections.abc import Callable
+from collections import deque
+from collections.abc import Callable, Generator, Iterator
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from itertools import product
 from math import ceil, floor
@@ -11,6 +12,7 @@ from sys import getswitchinterval
 from time import time_ns
 from typing import Type
 
+from more_itertools import intersperse
 from pygments.lexers import get_lexer_by_name
 from pygments.styles import get_style_by_name
 from reprisal.app import app
@@ -41,10 +43,11 @@ def root() -> Div:
         part_1,
         definitions,
         computers,
-        starting_processes_and_threads,
-        memory_sharing_and_multitasking,
+        processes_and_threads,
+        cooperative_concurrency_example,
+        tools,
         part_2,
-        code_for_activity_tracking,
+        activity_tracking_example,
         what_the_gil_actually_does,
         rule_1,
         rule_2,
@@ -457,6 +460,70 @@ def computers() -> Div:
     )
 
 
+def task(name: str, n: int) -> Generator[tuple[str, int], None, None]:
+    for idx in range(n):
+        yield name, idx + 1
+
+
+def cooperative_concurrency() -> None:
+    tasks = deque(
+        [
+            task("A", 3),
+            task("B", 4),
+            task("C", 2),
+        ]
+    )
+    while tasks:
+        task_to_run = tasks.popleft()
+        try:
+            name, count = next(task_to_run)
+            print(f"{name} {count}")
+            tasks.append(task_to_run)
+        except StopIteration:
+            pass
+    print("Done")
+
+
+def cooperative_concurrency_real() -> Iterator[tuple[int, str]]:
+    ready = deque(
+        [
+            task("A", 3),
+            task("B", 4),
+            task("C", 2),
+        ]
+    )
+    while ready:
+        task_to_run = ready.popleft()
+        try:
+            name, idx = next(task_to_run)
+            yield f"{name}  {idx}"
+            ready.append(task_to_run)
+        except StopIteration:
+            pass
+    yield "Done"
+
+
+@component
+def cooperative_concurrency_example() -> Div:
+    outputs, set_outputs = use_state([])
+
+    def on_key(event: KeyPressed) -> None:
+        if event.key == Key.Space:
+            set_outputs(list(cooperative_concurrency_real()))
+
+    return Div(
+        on_key=on_key,
+        style=row | align_self_stretch | align_children_center | justify_children_center | gap_children_2,
+        children=[
+            make_code_example(task, cooperative_concurrency),
+            Text(
+                style=weight_none | pad_x_1 | (border_heavy if outputs else None),
+                content=list(intersperse(Chunk.newline(), [Chunk(content=output) for output in outputs])),
+            ),
+        ],
+    )
+
+
 @component
 def you_may_have_heard() -> Div:
     return Div(
@@ -524,7 +591,7 @@ def you_may_have_heard() -> Div:
 
 
 @component
-def starting_processes_and_threads() -> Div:
+def processes_and_threads() -> Div:
     w, h = 20, 20
 
     parts = ("Isolated Memory", "Shared Memory")
@@ -604,7 +671,7 @@ def random_walkers(width: int, height: int, threads: int) -> Text:
 
 
 @component
-def memory_sharing_and_multitasking() -> Div:
+def tools() -> Div:
     revealed, set_revealed = use_state(False)
 
     def on_key(event: KeyPressed) -> None:
@@ -676,28 +743,31 @@ def track_activity(start_time: float, run_for: float, bucket_size: float) -> lis
     return tracker
 
 
-def make_code_example(fn: Callable[[...], object]) -> Div:
+def make_code_example(*fns: Callable[[...], object]) -> Div:
     lexer = get_lexer_by_name("python")
     style = get_style_by_name("github-dark")
 
     chunks = []
-    for token, text in lexer.get_tokens(inspect.getsource(fn)):
-        s = style.style_for_token(token)
-        chunks.append(
-            Chunk(
-                content=text,
-                style=CellStyle(
-                    foreground=Color.from_hex(s.get("color") or "000000"),
-                    background=Color.from_hex(s.get("bgcolor") or "000000"),
-                    bold=s["bold"],
-                    italic=s["italic"],
-                    underline=s["underline"],
-                ),
+    for fn in fns:
+        for token, text in lexer.get_tokens(inspect.getsource(fn)):
+            s = style.style_for_token(token)
+            chunks.append(
+                Chunk(
+                    content=text,
+                    style=CellStyle(
+                        foreground=Color.from_hex(s.get("color") or "000000"),
+                        background=Color.from_hex(s.get("bgcolor") or "000000"),
+                        bold=s["bold"],
+                        italic=s["italic"],
+                        underline=s["underline"],
+                    ),
+                )
             )
-        )
+        chunks.append(Chunk.newline())
 
     # pygments seems to add a trailing newline even if removed from the source,
     # probably good for files but not for slides, so pop it off
+    chunks.pop()
     chunks.pop()
 
     return Div(
@@ -715,7 +785,7 @@ def make_code_example(fn: Callable[[...], object]) -> Div:
 
 
 @component
-def code_for_activity_tracking() -> Div:
+def activity_tracking_example() -> Div:
     return make_code_example(track_activity)
 
 
