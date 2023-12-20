@@ -22,14 +22,6 @@ mypy = ">=1"
 line-length = 120
 include = "\\.pyi?$"
 
-[tool.pytest.ini_options]
-addopts = ["--strict-markers"]
-testpaths = ["tests", "counterweight", "docs"]
-
-markers = ["slow"]
-
-asyncio_mode = "auto"
-
 [tool.mypy]
 pretty = true
 show_error_codes = true
