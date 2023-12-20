@@ -24,7 +24,7 @@ include = "\\.pyi?$"
 
 [tool.pytest.ini_options]
 addopts = ["--strict-markers"]
-testpaths = ["tests", "reprisal", "docs"]
+testpaths = ["tests", "counterweight", "docs"]
 
 markers = ["slow"]
 

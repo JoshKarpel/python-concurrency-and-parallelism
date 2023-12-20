@@ -12,16 +12,16 @@ from sys import getswitchinterval
 from time import time_ns
 from typing import Type
 
+from counterweight.app import app
+from counterweight.components import Chunk, Div, Text, component
+from counterweight.events import KeyPressed
+from counterweight.hooks import use_effect, use_state
+from counterweight.keys import Key
+from counterweight.styles.styles import COLORS_BY_NAME
+from counterweight.styles.utilities import *
 from more_itertools import intersperse
 from pygments.lexers import get_lexer_by_name
 from pygments.styles import get_style_by_name
-from reprisal.app import app
-from reprisal.components import Chunk, Div, Text, component
-from reprisal.events import KeyPressed
-from reprisal.hooks import use_effect, use_state
-from reprisal.keys import Key
-from reprisal.styles.styles import COLORS_BY_NAME
-from reprisal.styles.utilities import *
 from structlog import get_logger
 
 from python_concurrency_and_parallelism.utils import black, canvas, clamp
@@ -904,7 +904,7 @@ def rule_2() -> Div:
                         Chunk(content="Rule #2", style=CellStyle(underline=True)),
                         Chunk.newline(),
                         Chunk.newline(),
-                        Chunk(content="The event loop runs on a single thread"),
+                        Chunk(content="The event loop runs on a single thread and is cooperatively concurrent"),
                     ],
                     style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
                 ),
