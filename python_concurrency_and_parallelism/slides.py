@@ -204,7 +204,11 @@ def rule_1() -> Div:
         Chunk(content="Rule #1", style=CellStyle(underline=True)),
         Chunk.newline(),
         Chunk.newline(),
-        Chunk(content="A Python process can never execute more Python bytecode"),
+        Chunk(content="A Python process can"),
+        Chunk.space(),
+        Chunk(content="never", style=CellStyle(foreground=red_600, underline=True)),
+        Chunk.space(),
+        Chunk(content="execute more Python bytecode"),
         Chunk.newline(),
         Chunk(content="per unit time than a single Python thread can"),
     ]
@@ -904,7 +908,11 @@ def rule_2() -> Div:
                         Chunk(content="Rule #2", style=CellStyle(underline=True)),
                         Chunk.newline(),
                         Chunk.newline(),
-                        Chunk(content="The event loop runs on a single thread and is cooperatively concurrent"),
+                        Chunk(content="The event loop runs on a single thread and is"),
+                        Chunk.newline(),
+                        Chunk(content="exclusively", style=CellStyle(foreground=red_600, underline=True)),
+                        Chunk.space(),
+                        Chunk(content="cooperatively concurrent"),
                     ],
                     style=weight_none | border_heavy | border_gray_200 | text_justify_center | pad_x_1,
                 ),
@@ -971,6 +979,12 @@ def blocking_the_event_loop() -> Div:
                     ),
                     Text(
                         content="everything else",
+                        style=weight_none,
+                    )
+                    if reveals >= 3
+                    else Text(content=""),
+                    Text(
+                        content="yes, even when you release the GIL",
                         style=weight_none,
                     )
                     if reveals >= 3
