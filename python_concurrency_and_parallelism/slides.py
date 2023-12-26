@@ -14,7 +14,8 @@ from time import time_ns
 from typing import Type
 
 from counterweight.app import app
-from counterweight.components import Chunk, Div, Text, component
+from counterweight.components import component
+from counterweight.elements import Chunk, Div, Text
 from counterweight.events import KeyPressed
 from counterweight.hooks import use_effect, use_state
 from counterweight.keys import Key
