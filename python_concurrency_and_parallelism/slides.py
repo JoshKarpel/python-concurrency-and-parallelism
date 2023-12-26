@@ -624,8 +624,8 @@ def processes_and_threads() -> Div:
                         style=pad_x_2 | weight_none | text_justify_center,
                     ),
                     Div(
-                        style=row | justify_children_center | gap_children_1,
-                        children=[random_walkers(w, h, 1) for _ in range(3)],
+                        style=row | justify_children_center,
+                        children=[random_walkers(w, h, 1, first=idx == 0) for idx in range(3)],
                     ),
                 ],
             ),
@@ -640,7 +640,7 @@ def processes_and_threads() -> Div:
                         ],
                         style=pad_x_2 | weight_none | text_justify_center,
                     ),
-                    Div(style=row | justify_children_center, children=[random_walkers(w, h, 6)]),
+                    Div(style=row | justify_children_center, children=[random_walkers(w, h, 6, first=True)]),
                 ],
             ),
         ],
@@ -651,7 +651,7 @@ moves = [(x, y) for x, y in product((-1, 0, 1), repeat=2) if (x, y) != (0, 0)]
 
 
 @component
-def random_walkers(width: int, height: int, threads: int) -> Text:
+def random_walkers(width: int, height: int, threads: int, first: bool) -> Text:
     colors, set_colors = use_state(random.sample(list(COLORS_BY_NAME.values()), k=threads))
     walkers, set_walkers = use_state([(random.randrange(width), random.randrange(height)) for _ in range(len(colors))])
 
@@ -677,7 +677,7 @@ def random_walkers(width: int, height: int, threads: int) -> Text:
                 cells=dict(zip(walkers, colors)),
             )
         ),
-        style=border_heavy | border_slate_400 | weight_none,
+        style=border_heavy | border_slate_400 | (border_top_bottom_right if not first else None) | weight_none,
     )
 
 
