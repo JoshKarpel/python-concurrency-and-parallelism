@@ -6,6 +6,7 @@ from asyncio import sleep
 from collections import deque
 from collections.abc import Callable, Generator, Iterator
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from functools import lru_cache
 from itertools import chain, product, repeat
 from math import ceil, floor
 from sys import getswitchinterval
@@ -16,7 +17,7 @@ from xml.etree.ElementTree import Element, ElementTree, SubElement, indent
 
 from counterweight.app import app
 from counterweight.components import component
-from counterweight.controls import Quit, Screenshot
+from counterweight.controls import Quit
 from counterweight.elements import Chunk, Div, Text
 from counterweight.events import KeyPressed
 from counterweight.hooks import use_effect, use_state
@@ -734,24 +735,30 @@ def track_activity(start_time: float, run_for: float, bucket_size: float) -> lis
     return tracker
 
 
+@lru_cache(maxsize=2**12)
+def style_for_token(style: str, token: object) -> CellStyle:
+    s = get_style_by_name(style).style_for_token(token)
+
+    return CellStyle(
+        foreground=Color.from_hex(s.get("color") or "000000"),
+        background=Color.from_hex(s.get("bgcolor") or "000000"),
+        bold=s["bold"],
+        italic=s["italic"],
+        underline=s["underline"],
+    )
+
+
 def make_code_example(*fns: Callable[[...], object]) -> Div:
     lexer = get_lexer_by_name("python")
-    style = get_style_by_name("github-dark")
 
     chunks = []
     for fn in fns:
         for token, text in lexer.get_tokens(inspect.getsource(fn)):
-            s = style.style_for_token(token)
+            s = style_for_token("github-dark", token)
             chunks.append(
                 Chunk(
                     content=text,
-                    style=CellStyle(
-                        foreground=Color.from_hex(s.get("color") or "000000"),
-                        background=Color.from_hex(s.get("bgcolor") or "000000"),
-                        bold=s["bold"],
-                        italic=s["italic"],
-                        underline=s["underline"],
-                    ),
+                    style=s,
                 )
             )
         chunks.append(Chunk.newline())
@@ -1061,27 +1068,27 @@ def scenario_3() -> Div:
 
 
 SLIDES = [
-    title,
-    rule_0,
-    you_may_have_heard,
-    part_1,
-    definitions,
-    computers,
-    processes_and_threads,
+    # title,
+    # rule_0,
+    # you_may_have_heard,
+    # part_1,
+    # definitions,
+    # computers,
+    # processes_and_threads,
     cooperative_concurrency_example,
-    tools,
-    part_2,
-    activity_tracking_example,
-    what_the_gil_actually_does,
-    rule_1,
-    # TODO: introduce python asyncio here
-    rule_2,
-    blocking_the_event_loop,
-    # TODO: connect python mechanisms to the earlier tools slide
-    part_3,
-    scenario_1,
-    scenario_2,
-    scenario_3,
+    # tools,
+    # part_2,
+    # activity_tracking_example,
+    # what_the_gil_actually_does,
+    # rule_1,
+    # # TODO: introduce python asyncio here
+    # rule_2,
+    # blocking_the_event_loop,
+    # # TODO: connect python mechanisms to the earlier tools slide
+    # part_3,
+    # scenario_1,
+    # scenario_2,
+    # scenario_3,
 ]
 
 if __name__ == "__main__":
@@ -1128,9 +1135,9 @@ if __name__ == "__main__":
                 autopilot=chain(
                     flatten(
                         take(
-                            len(SLIDES),
+                            100,
                             zip(
-                                repeat(Screenshot(handler=aggregator)),
+                                # repeat(Screenshot(handler=aggregator)),
                                 repeat(KeyPressed(key=Key.Right)),
                             ),
                         ),
