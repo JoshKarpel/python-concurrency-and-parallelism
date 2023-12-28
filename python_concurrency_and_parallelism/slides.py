@@ -1068,27 +1068,27 @@ def scenario_3() -> Div:
 
 
 SLIDES = [
-    # title,
-    # rule_0,
-    # you_may_have_heard,
-    # part_1,
-    # definitions,
-    # computers,
-    # processes_and_threads,
+    title,
+    rule_0,
+    you_may_have_heard,
+    part_1,
+    definitions,
+    computers,
+    processes_and_threads,
     cooperative_concurrency_example,
-    # tools,
-    # part_2,
-    # activity_tracking_example,
-    # what_the_gil_actually_does,
-    # rule_1,
-    # # TODO: introduce python asyncio here
-    # rule_2,
-    # blocking_the_event_loop,
-    # # TODO: connect python mechanisms to the earlier tools slide
-    # part_3,
-    # scenario_1,
-    # scenario_2,
-    # scenario_3,
+    tools,
+    part_2,
+    activity_tracking_example,
+    what_the_gil_actually_does,
+    rule_1,
+    # TODO: introduce python asyncio here
+    rule_2,
+    blocking_the_event_loop,
+    # TODO: connect python mechanisms to the earlier tools slide
+    part_3,
+    scenario_1,
+    scenario_2,
+    scenario_3,
 ]
 
 if __name__ == "__main__":
