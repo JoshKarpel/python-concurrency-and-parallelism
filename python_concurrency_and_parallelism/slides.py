@@ -6,22 +6,24 @@ from asyncio import sleep
 from collections import deque
 from collections.abc import Callable, Generator, Iterator
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from itertools import product
+from itertools import chain, product, repeat
 from math import ceil, floor
 from sys import getswitchinterval
 from textwrap import dedent
 from time import time_ns
 from typing import Type
+from xml.etree.ElementTree import Element, ElementTree, SubElement, indent
 
 from counterweight.app import app
 from counterweight.components import component
+from counterweight.controls import Quit, Screenshot
 from counterweight.elements import Chunk, Div, Text
 from counterweight.events import KeyPressed
 from counterweight.hooks import use_effect, use_state
 from counterweight.keys import Key
 from counterweight.styles.styles import COLORS_BY_NAME
 from counterweight.styles.utilities import *
-from more_itertools import intersperse
+from more_itertools import flatten, intersperse, take
 from pygments.lexers import get_lexer_by_name
 from pygments.styles import get_style_by_name
 from structlog import get_logger
@@ -38,46 +40,22 @@ python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 
 @component
 def root() -> Div:
-    slides = [
-        title,
-        rule_0,
-        you_may_have_heard,
-        part_1,
-        definitions,
-        computers,
-        processes_and_threads,
-        cooperative_concurrency_example,
-        tools,
-        part_2,
-        activity_tracking_example,
-        what_the_gil_actually_does,
-        rule_1,
-        # TODO: introduce python asyncio here
-        rule_2,
-        blocking_the_event_loop,
-        # TODO: connect python mechanisms to the earlier tools slide
-        part_3,
-        scenario_1,
-        scenario_2,
-        scenario_3,
-    ]
-
     current_slide, set_current_slide = use_state(0)
 
     def on_key(event: KeyPressed) -> None:
         if event.key == Key.Right:
-            set_current_slide(lambda n: clamp(0, n + 1, len(slides) - 1))
+            set_current_slide(lambda n: clamp(0, n + 1, len(SLIDES) - 1))
         elif event.key == Key.Left:
-            set_current_slide(lambda n: clamp(0, n - 1, len(slides) - 1))
+            set_current_slide(lambda n: clamp(0, n - 1, len(SLIDES) - 1))
 
     return Div(
         style=col,
         children=[
             Div(
                 style=col | align_self_stretch,
-                children=[slides[current_slide]()],
+                children=[SLIDES[current_slide]()],
             ),
-            footer(current_slide=current_slide + 1, total_slides=len(slides)),
+            footer(current_slide=current_slide + 1, total_slides=len(SLIDES)),
         ],
         on_key=on_key,
     )
@@ -474,6 +452,7 @@ def computers() -> Div:
 
 def task(name: str, n: int) -> Generator[tuple[str, int], None, None]:
     for idx in range(n):
+        # Make some incremental progress on the task here
         yield name, idx + 1
 
 
@@ -525,7 +504,7 @@ def cooperative_concurrency_example() -> Div:
 
     return Div(
         on_key=on_key,
-        style=row | align_self_stretch | align_children_center | justify_children_center | gap_children_2,
+        style=row | align_self_stretch | align_children_center | justify_children_center | gap_children_1,
         children=[
             make_code_example(task, cooperative_concurrency),
             Text(
@@ -1081,5 +1060,87 @@ def scenario_3() -> Div:
     )
 
 
+SLIDES = [
+    title,
+    rule_0,
+    you_may_have_heard,
+    part_1,
+    definitions,
+    computers,
+    processes_and_threads,
+    cooperative_concurrency_example,
+    tools,
+    part_2,
+    activity_tracking_example,
+    what_the_gil_actually_does,
+    rule_1,
+    # TODO: introduce python asyncio here
+    rule_2,
+    blocking_the_event_loop,
+    # TODO: connect python mechanisms to the earlier tools slide
+    part_3,
+    scenario_1,
+    scenario_2,
+    scenario_3,
+]
+
 if __name__ == "__main__":
-    asyncio.run(app(root))
+    if len(sys.argv) == 1:
+        asyncio.run(app(root))
+    else:
+        html = Element("html")
+        et = ElementTree(element=html)
+
+        style = SubElement(html, "style")
+        style.text = dedent(
+            """\
+            .wrapper {
+              display: flex;
+              flex-direction: column;
+              gap: 2em;
+            }
+
+            .slide {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+            }
+
+            svg {
+              display: block;
+              margin: auto;
+            }
+            """
+        )
+
+        body = SubElement(html, "body")
+        wrapper = SubElement(body, "div", attrib={"class": "wrapper"})
+
+        def aggregator(svg: ElementTree) -> None:
+            slide = SubElement(wrapper, "div", attrib={"class": "slide"})
+            slide.append(svg.getroot())
+
+        asyncio.run(
+            app(
+                root,
+                dimensions=(100, 30),
+                headless=True,
+                autopilot=chain(
+                    flatten(
+                        take(
+                            # len(SLIDES) + 1,
+                            3,
+                            zip(
+                                repeat(Screenshot(handler=aggregator)),
+                                repeat(KeyPressed(key=Key.Right)),
+                            ),
+                        ),
+                    ),
+                    (Quit(),),
+                ),
+            )
+        )
+
+        indent(et, space="  ")
+
+        et.write("slides.html", encoding="unicode")
