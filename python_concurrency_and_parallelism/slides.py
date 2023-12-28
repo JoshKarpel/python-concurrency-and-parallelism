@@ -17,7 +17,7 @@ from xml.etree.ElementTree import Element, ElementTree, SubElement, indent
 
 from counterweight.app import app
 from counterweight.components import component
-from counterweight.controls import Quit
+from counterweight.controls import Quit, Screenshot
 from counterweight.elements import Chunk, Div, Text
 from counterweight.events import KeyPressed
 from counterweight.hooks import use_effect, use_state
@@ -1137,7 +1137,7 @@ if __name__ == "__main__":
                         take(
                             100,
                             zip(
-                                # repeat(Screenshot(handler=aggregator)),
+                                repeat(Screenshot(handler=aggregator)),
                                 repeat(KeyPressed(key=Key.Right)),
                             ),
                         ),
