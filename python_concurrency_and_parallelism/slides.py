@@ -1128,8 +1128,7 @@ if __name__ == "__main__":
                 autopilot=chain(
                     flatten(
                         take(
-                            # len(SLIDES) + 1,
-                            3,
+                            len(SLIDES),
                             zip(
                                 repeat(Screenshot(handler=aggregator)),
                                 repeat(KeyPressed(key=Key.Right)),
@@ -1144,3 +1143,5 @@ if __name__ == "__main__":
         indent(et, space="  ")
 
         et.write("slides.html", encoding="unicode")
+
+        print("done")
