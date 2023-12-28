@@ -1135,7 +1135,7 @@ if __name__ == "__main__":
                 autopilot=chain(
                     flatten(
                         take(
-                            100,
+                            len(SLIDES),
                             zip(
                                 repeat(Screenshot(handler=aggregator)),
                                 repeat(KeyPressed(key=Key.Right)),
