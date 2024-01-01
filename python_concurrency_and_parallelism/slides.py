@@ -208,7 +208,7 @@ def rule_1() -> Div:
 
     def on_key(event: KeyPressed) -> None:
         if event.key == Key.Space:
-            set_revealed(toggle)
+            set_revealed(not revealed)
 
     return Div(
         style=col | align_self_center | align_children_center | justify_children_center | gap_children_2,
@@ -668,7 +668,7 @@ def tools() -> Div:
 
     def on_key(event: KeyPressed) -> None:
         if event.key == Key.Space:
-            set_revealed(toggle)
+            set_revealed(not revealed)
 
     table = [
         ["Scheduling", "+", "Memory", "=", "Tool"],
