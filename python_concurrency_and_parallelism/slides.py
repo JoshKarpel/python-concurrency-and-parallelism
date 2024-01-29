@@ -29,7 +29,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.styles import get_style_by_name
 from structlog import get_logger
 
-from python_concurrency_and_parallelism.utils import black, canvas, clamp
+from python_concurrency_and_parallelism.utils import BLACK, canvas, clamp
 
 logger = get_logger()
 
@@ -880,7 +880,7 @@ def make_activity_bars(
             content=[
                 Chunk(content=f"   {n} "),
                 *colored_bar(
-                    *((1, black.blend(palette[n], t / biggest_count)) for t in tracker[offset : offset + buckets])
+                    *((1, BLACK.blend(palette[n], t / biggest_count)) for t in tracker[offset : offset + buckets])
                 ),
                 Chunk.space(),
                 Chunk(content=f"{sum(tracker[offset:offset + buckets]):>6}"),
