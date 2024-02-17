@@ -118,7 +118,7 @@ def title() -> Div:
                 ),
             ),
             Text(content="Josh Karpel", style=weight_none),
-            Text(content="MadPy, May 2024", style=weight_none | text_gray_400),
+            Text(content="MadPy, June 2024", style=weight_none | text_gray_400),
         ],
     )
 
@@ -676,7 +676,7 @@ def tools() -> Div:
         ["Preemptive", "+", "Isolated", "=", "Processes"],
         ["Cooperative", "+", "Shared", "=", "Async"],
     ]
-    revealable = ["Cooperative", "+", "Isolated", "=", "Queues / Actors"]
+    revealable = ["Cooperative", "+", "Isolated", "=", "Actors"]
     if revealed:
         table.append(revealable)
     else:
