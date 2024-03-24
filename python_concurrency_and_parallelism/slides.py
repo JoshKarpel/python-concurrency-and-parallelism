@@ -130,7 +130,7 @@ def title() -> Div:
         children=[
             drop_shadow(
                 Text(
-                    content="Concurrency & Parallelism in Python",
+                    content="Principles of Concurrency & Parallelism in Python",
                     style=weight_none | border_heavy | border_gray_200 | pad_x_1,
                 ),
             ),
