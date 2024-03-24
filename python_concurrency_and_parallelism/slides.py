@@ -6,10 +6,13 @@ from asyncio import sleep
 from collections import deque
 from collections.abc import Callable, Generator, Iterator
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from datetime import datetime
 from functools import lru_cache
 from itertools import chain, product, repeat
 from math import ceil, floor
+from pathlib import Path
 from sys import getswitchinterval
+from tempfile import gettempdir
 from textwrap import dedent
 from time import time_ns
 from typing import Type
@@ -38,16 +41,30 @@ full_block = "█"
 python_blue = Color.from_hex("#4B8BBE")
 python_chunk = Chunk(content="Python", style=CellStyle(foreground=python_blue))
 
+SLIDE_IDX_FILE = Path(gettempdir()) / "python-concurrency-and-parallelism-slide-idx"
+SLIDE_IDX_FILE.touch(exist_ok=True)
+
+
+def load_current_slide() -> int:
+    return clamp(0, int(SLIDE_IDX_FILE.read_text().strip() or "0"), len(SLIDES) - 1)
+
+
+def write_current_slide(current_slide: int) -> int:
+    SLIDE_IDX_FILE.write_text(str(current_slide))
+    return current_slide
+
 
 @component
 def root() -> Div:
-    current_slide, set_current_slide = use_state(0)
+    current_slide, set_current_slide = use_state(load_current_slide)
 
     def on_key(event: KeyPressed) -> None:
         if event.key == Key.Right:
-            set_current_slide(lambda n: clamp(0, n + 1, len(SLIDES) - 1))
+            delta = 1
         elif event.key == Key.Left:
-            set_current_slide(lambda n: clamp(0, n - 1, len(SLIDES) - 1))
+            delta = -1
+
+        set_current_slide(lambda n: write_current_slide(clamp(0, n + delta, len(SLIDES) - 1)))
 
     return Div(
         style=col,
@@ -64,14 +81,14 @@ def root() -> Div:
 
 @component
 def footer(current_slide: int, total_slides: int) -> Div:
-    # current_time, set_current_time = use_state(datetime.now())
-    #
-    # async def tick() -> None:
-    #     while True:
-    #         await sleep(1 / 60)
-    #         set_current_time(datetime.now())
-    #
-    # use_effect(tick, deps=())
+    current_time, set_current_time = use_state(datetime.now())
+
+    async def tick() -> None:
+        while True:
+            await sleep(0.25)
+            set_current_time(datetime.now())
+
+    use_effect(tick, deps=())
 
     return Div(
         style=row
@@ -83,10 +100,10 @@ def footer(current_slide: int, total_slides: int) -> Div:
         | border_top,
         children=[
             Text(
-                content=[Chunk(content="Concurrency & Parallelism in Python")],
+                content=[Chunk(content="Principles of Concurrency & Parallelism in Python")],
                 style=text_slate_200,
             ),
-            # Text(content=f"{current_time:%Y-%m-%d %I:%M %p}", style=text_slate_200),
+            Text(content=f"{current_time:%Y-%m-%d %I:%M %p}", style=text_slate_200),
             Text(
                 content=[
                     Chunk(content=f"{current_slide}"),
@@ -981,7 +998,7 @@ def blocking_the_event_loop() -> Div:
                         content="yes, even when you release the GIL",
                         style=weight_none,
                     )
-                    if reveals >= 3
+                    if reveals >= 4
                     else Text(content=""),
                 ],
             ),
@@ -1123,7 +1140,7 @@ if __name__ == "__main__":
         body = SubElement(html, "body")
         wrapper = SubElement(body, "div", attrib={"class": "wrapper"})
 
-        def aggregator(svg: ElementTree) -> None:
+        def screenshot_aggregator(svg: ElementTree) -> None:
             slide = SubElement(wrapper, "div", attrib={"class": "slide"})
             slide.append(svg.getroot())
 
@@ -1137,7 +1154,7 @@ if __name__ == "__main__":
                         take(
                             len(SLIDES),
                             zip(
-                                repeat(Screenshot(handler=aggregator)),
+                                repeat(Screenshot(handler=screenshot_aggregator)),
                                 repeat(KeyPressed(key=Key.Right)),
                             ),
                         ),
