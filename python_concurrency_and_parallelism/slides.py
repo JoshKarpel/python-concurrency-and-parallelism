@@ -60,11 +60,9 @@ def root() -> Div:
 
     def on_key(event: KeyPressed) -> None:
         if event.key == Key.Right:
-            delta = 1
+            set_current_slide(lambda n: write_current_slide(clamp(0, n + 1, len(SLIDES) - 1)))
         elif event.key == Key.Left:
-            delta = -1
-
-        set_current_slide(lambda n: write_current_slide(clamp(0, n + delta, len(SLIDES) - 1)))
+            set_current_slide(lambda n: write_current_slide(clamp(0, n - 1, len(SLIDES) - 1)))
 
     return Div(
         style=col,
