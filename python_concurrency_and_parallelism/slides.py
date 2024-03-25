@@ -132,5 +132,3 @@ if __name__ == "__main__":
         indent(et, space="  ")
 
         et.write("slides.html", encoding="unicode")
-
-        print("done")

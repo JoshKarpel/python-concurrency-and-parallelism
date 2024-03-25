@@ -7,7 +7,6 @@ from counterweight.elements import Chunk, Div, Text
 from counterweight.events import KeyPressed
 from counterweight.hooks import use_effect, use_state
 from counterweight.keys import Key
-from counterweight.styles import CellStyle
 from counterweight.styles.utilities import *
 from more_itertools import intersperse
 
