@@ -2,7 +2,6 @@ from textwrap import dedent
 
 from counterweight.components import component
 from counterweight.elements import Chunk, Div, Text
-from counterweight.styles import CellStyle
 from counterweight.styles.utilities import *
 
 from python_concurrency_and_parallelism.utils import drop_shadow
