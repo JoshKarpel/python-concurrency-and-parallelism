@@ -18,24 +18,14 @@ from more_itertools import flatten, take
 from structlog import get_logger
 
 from python_concurrency_and_parallelism.footer import footer
-from python_concurrency_and_parallelism.part_0 import rule_0, title, you_may_have_heard
+from python_concurrency_and_parallelism.part_0 import PART_0
 from python_concurrency_and_parallelism.part_1 import (
-    computers,
-    cooperative_concurrency_example,
-    definitions,
-    part_1,
-    processes_and_threads,
-    tools,
+    PART_1,
 )
 from python_concurrency_and_parallelism.part_2 import (
-    activity_tracking_example,
-    blocking_the_event_loop,
-    part_2,
-    rule_1,
-    rule_2,
-    what_the_gil_actually_does,
+    PART_2,
 )
-from python_concurrency_and_parallelism.part_3 import part_3, scenario_1, scenario_2, scenario_3
+from python_concurrency_and_parallelism.part_3 import PART_3
 from python_concurrency_and_parallelism.utils import clamp
 
 logger = get_logger()
@@ -77,27 +67,10 @@ def root() -> Div:
 
 
 SLIDES = [
-    title,
-    rule_0,
-    you_may_have_heard,
-    part_1,
-    definitions,
-    computers,
-    processes_and_threads,
-    cooperative_concurrency_example,
-    tools,
-    part_2,
-    activity_tracking_example,
-    what_the_gil_actually_does,
-    rule_1,
-    # TODO: introduce python asyncio here
-    rule_2,
-    blocking_the_event_loop,
-    # TODO: connect python mechanisms to the earlier tools slide
-    part_3,
-    scenario_1,
-    scenario_2,
-    scenario_3,
+    *PART_0,
+    *PART_1,
+    *PART_2,
+    *PART_3,
 ]
 
 if __name__ == "__main__":

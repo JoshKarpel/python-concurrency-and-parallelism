@@ -107,3 +107,10 @@ def you_may_have_heard() -> Div:
             ),
         ],
     )
+
+
+PART_0 = [
+    title,
+    rule_0,
+    you_may_have_heard,
+]

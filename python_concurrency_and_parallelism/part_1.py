@@ -415,3 +415,13 @@ def tools() -> Div:
             )
         ],
     )
+
+
+PART_1 = [
+    part_1,
+    definitions,
+    computers,
+    processes_and_threads,
+    cooperative_concurrency_example,
+    tools,
+]

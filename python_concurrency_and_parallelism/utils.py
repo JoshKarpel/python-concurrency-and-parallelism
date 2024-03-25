@@ -118,12 +118,12 @@ def style_for_token(style: str, token: object) -> CellStyle:
     )
 
 
-def make_code_example(*fns: Callable[[...], object]) -> Div:
+def make_code_example(*fns: Callable[[...], object] | str) -> Div:
     lexer = get_lexer_by_name("python")
 
     chunks = []
     for fn in fns:
-        for token, text in lexer.get_tokens(inspect.getsource(fn)):
+        for token, text in lexer.get_tokens(inspect.getsource(fn) if callable(fn) else fn):
             s = style_for_token("github-dark", token)
             chunks.append(
                 Chunk(

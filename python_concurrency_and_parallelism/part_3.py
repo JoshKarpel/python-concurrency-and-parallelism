@@ -84,3 +84,11 @@ def scenario_3() -> Div:
           (compared to how long it takes you to figure out which one to forward to)
         """
     )
+
+
+PART_3 = [
+    part_3,
+    scenario_1,
+    scenario_2,
+    scenario_3,
+]
