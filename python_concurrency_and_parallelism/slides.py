@@ -19,12 +19,8 @@ from structlog import get_logger
 
 from python_concurrency_and_parallelism.footer import footer
 from python_concurrency_and_parallelism.part_0 import PART_0
-from python_concurrency_and_parallelism.part_1 import (
-    PART_1,
-)
-from python_concurrency_and_parallelism.part_2 import (
-    PART_2,
-)
+from python_concurrency_and_parallelism.part_1 import PART_1
+from python_concurrency_and_parallelism.part_2 import PART_2
 from python_concurrency_and_parallelism.part_3 import PART_3
 from python_concurrency_and_parallelism.utils import clamp
 

@@ -42,6 +42,38 @@ def part_2() -> Div:
     )
 
 
+@component
+def the_gil() -> Div:
+    half_and_half_div_style = col | align_children_center | gap_children_1
+
+    c = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[
+                    Chunk(content="The"),
+                    Chunk.space(),
+                    Chunk(content="Global Interpreter Lock (GIL)", style=CellStyle(foreground=red_600)),
+                    Chunk.newline(),
+                    Chunk(content="prevents more than"),
+                    Chunk.space(),
+                    Chunk(content="one thread per process", style=CellStyle(foreground=red_600)),
+                    Chunk.newline(),
+                    Chunk(content="from executing Python bytecode"),
+                    Chunk.newline(),
+                    Chunk(content="simultaneously", style=CellStyle(foreground=red_600)),
+                ],
+                style=weight_none | text_justify_center,
+            ),
+        ],
+    )
+
+    return Div(
+        style=row | align_self_stretch | align_children_center | justify_children_space_around,
+        children=[c],
+    )
+
+
 def track_activity(start_time: float, run_for: float, bucket_size: float) -> list[int]:
     """
     The tracker is a list of buckets representing time slices.
@@ -189,6 +221,55 @@ def rule_1() -> Div:
                 ),
             ),
         ],
+    )
+
+
+@component
+def corollary_1() -> Div:
+    half_and_half_div_style = col | align_children_center | gap_children_1
+
+    threads = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[Chunk(content="Threads", style=CellStyle(underline=True))],
+                style=weight_none,
+            ),
+            Text(
+                content=[
+                    Chunk(content="Threads"),
+                    Chunk.newline(),
+                    Chunk(content="automatically", style=CellStyle(foreground=green_600)),
+                    Chunk.newline(),
+                    Chunk(content="release the GIL when possible"),
+                ],
+                style=weight_none | text_justify_center,
+            ),
+        ],
+    )
+    aio = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[Chunk(content="Async", style=CellStyle(underline=True))],
+                style=weight_none,
+            ),
+            Text(
+                content=[
+                    Chunk(content="Tasks"),
+                    Chunk.newline(),
+                    Chunk(content="explicitly", style=CellStyle(foreground=green_600)),
+                    Chunk.newline(),
+                    Chunk(content="yield control at await points"),
+                ],
+                style=weight_none | text_justify_center,
+            ),
+        ],
+    )
+
+    return Div(
+        style=row | align_self_stretch | align_children_center | justify_children_space_around,
+        children=[threads, aio],
     )
 
 
@@ -409,9 +490,11 @@ def something_that_make_josh_furious() -> Div:
 
 PART_2 = [
     part_2,
+    the_gil,
     activity_tracking_example,
     what_the_gil_actually_does,
     rule_1,
+    corollary_1,
     async_cooperative_concurrency_example,
     bad_async_cooperative_concurrency_example,
     rule_2,
