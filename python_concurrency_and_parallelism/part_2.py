@@ -74,7 +74,11 @@ def the_gil() -> Div:
     )
 
 
-def track_activity(start_time: float, run_for: float, bucket_size: float) -> list[int]:
+def track_activity(
+    start_time: float,
+    run_for: float,
+    bucket_size: float,
+) -> list[int]:
     """
     The tracker is a list of buckets representing time slices.
     Each bucket will be the count of how many times
@@ -101,6 +105,32 @@ def activity_tracking_example() -> Div:
     return make_code_example(track_activity)
 
 
+def run_experiment(
+    executor_type: Type[ThreadPoolExecutor] | Type[ProcessPoolExecutor],
+    run_for: float,
+    bucket_size: float,
+    N: int,
+) -> list[list[int]]:
+    with executor_type(max_workers=N) as executor:
+        start_time = time_ns()
+        trackers = [
+            executor.submit(
+                track_activity,
+                start_time=start_time,
+                run_for=run_for,
+                bucket_size=bucket_size,
+            )
+            for _ in range(N)
+        ]
+
+    return [tracker.result() for tracker in trackers]
+
+
+@component
+def run_experiment_example() -> Div:
+    return make_code_example(run_experiment)
+
+
 @component
 def what_the_gil_actually_does() -> Div:
     bucket_size = (getswitchinterval() / 5) * 1e9
@@ -115,26 +145,11 @@ def what_the_gil_actually_does() -> Div:
     thread_results, set_thread_results = use_state([zeros] * N)
     process_results, set_process_results = use_state([zeros] * N)
 
-    def run_experiment(executor_type: Type[ThreadPoolExecutor] | Type[ProcessPoolExecutor]) -> list[list[int]]:
-        with executor_type(max_workers=N) as executor:
-            start_time = time_ns()
-            trackers = [
-                executor.submit(
-                    track_activity,
-                    start_time=start_time,
-                    run_for=run_for,
-                    bucket_size=bucket_size,
-                )
-                for _ in range(N)
-            ]
-
-        return [tracker.result() for tracker in trackers]
-
     def on_key(event: KeyPressed) -> None:
         if event.key == "t":
-            set_thread_results(run_experiment(ThreadPoolExecutor))
+            set_thread_results(run_experiment(ThreadPoolExecutor, run_for, bucket_size, N))
         elif event.key == "p":
-            set_process_results(run_experiment(ProcessPoolExecutor))
+            set_process_results(run_experiment(ProcessPoolExecutor, run_for, bucket_size, N))
 
     half_and_half_div_style = col | align_children_center | gap_children_1
     color_bar_div_style = col | border_heavy | border_gray_400
@@ -382,7 +397,7 @@ def async_cooperative_concurrency_example() -> Div:
         children=[
             make_code_example(async_task, async_cooperative_concurrency),
             Text(
-                style=weight_none | pad_x_1 | (border_heavy if outputs else None),
+                style=weight_none | pad_x_1 | (border_heavy if outputs else pad_x_3),
                 content=list(intersperse(Chunk.newline(), [Chunk(content=output) for output in outputs])),
             ),
         ],
@@ -423,7 +438,7 @@ def bad_async_cooperative_concurrency_example() -> Div:
         children=[
             make_code_example(bad_async_task, bad_async_cooperative_concurrency),
             Text(
-                style=weight_none | pad_x_1 | (border_heavy if outputs else None),
+                style=weight_none | pad_x_1 | (border_heavy if outputs else pad_x_3),
                 content=list(intersperse(Chunk.newline(), [Chunk(content=output) for output in outputs])),
             ),
         ],
@@ -456,7 +471,7 @@ def rule_2() -> Div:
 
 # via https://developer.nvidia.com/blog/building-a-machine-learning-microservice-with-fastapi/
 terrible = r"""
-@api_router.post("/predict", response_model=schemas.PredictionResults, status_code=200)
+@api.post("/predict", response_model=schemas.PredictionResults, status_code=200)
 async def predict(input_data: schemas.MultipleCarTransactionInputData) -> Any:
     input_df = pd.DataFrame(jsonable_encoder(input_data.inputs))
 
@@ -492,6 +507,7 @@ PART_2 = [
     part_2,
     the_gil,
     activity_tracking_example,
+    run_experiment_example,
     what_the_gil_actually_does,
     rule_1,
     corollary_1,

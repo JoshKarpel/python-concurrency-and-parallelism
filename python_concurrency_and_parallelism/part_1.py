@@ -254,6 +254,52 @@ def computers() -> Div:
     )
 
 
+@component
+def processes_and_threads() -> Div:
+    w, h = 20, 20
+
+    parts = ("Isolated Memory", "Shared Memory")
+    justify_width = max(len(p) for p in parts)
+    parts = [p.center(justify_width) for p in parts]
+
+    return Div(
+        style=col | align_self_stretch | pad_x_2,
+        children=[
+            Div(
+                style=row | align_children_center | align_self_stretch,
+                children=[
+                    Text(
+                        content=[
+                            Chunk(content="Processes", style=CellStyle(foreground=lime_600)),
+                            Chunk.newline(),
+                            Chunk(content=parts[0]),
+                        ],
+                        style=pad_x_2 | weight_none | text_justify_center,
+                    ),
+                    Div(
+                        style=row | justify_children_center,
+                        children=[random_walkers(w, h, 1, first=idx == 0) for idx in range(3)],
+                    ),
+                ],
+            ),
+            Div(
+                style=row | align_children_center | align_self_stretch,
+                children=[
+                    Text(
+                        content=[
+                            Chunk(content="Threads", style=CellStyle(foreground=pink_600)),
+                            Chunk.newline(),
+                            Chunk(content=parts[1]),
+                        ],
+                        style=pad_x_2 | weight_none | text_justify_center,
+                    ),
+                    Div(style=row | justify_children_center, children=[random_walkers(w, h, 6, first=True)]),
+                ],
+            ),
+        ],
+    )
+
+
 def task(name: str, n: int) -> Iterator[tuple[str, int]]:
     for idx in range(n):
         # Make some incremental progress on the task here
@@ -308,58 +354,20 @@ def cooperative_concurrency_example() -> Div:
 
     return Div(
         on_key=on_key,
-        style=row | align_self_stretch | align_children_center | justify_children_center | gap_children_1,
+        style=row | align_self_stretch | align_children_center | justify_children_center | gap_children_1 | pad_x_2,
         children=[
+            Text(
+                style=weight_none | text_justify_center,
+                content=[
+                    Chunk(content="Coroutines", style=CellStyle(foreground=python_blue)),
+                    Chunk.newline(),
+                    Chunk(content="Shared Memory"),
+                ],
+            ),
             make_code_example(task, cooperative_concurrency),
             Text(
-                style=weight_none | pad_x_1 | (border_heavy if outputs else None),
+                style=weight_none | (border_heavy if outputs else pad_x_3),
                 content=list(intersperse(Chunk.newline(), [Chunk(content=output) for output in outputs])),
-            ),
-        ],
-    )
-
-
-@component
-def processes_and_threads() -> Div:
-    w, h = 20, 20
-
-    parts = ("Isolated Memory", "Shared Memory")
-    justify_width = max(len(p) for p in parts)
-    parts = [p.center(justify_width) for p in parts]
-
-    return Div(
-        style=col | align_self_stretch | pad_x_2,
-        children=[
-            Div(
-                style=row | align_children_center | align_self_stretch,
-                children=[
-                    Text(
-                        content=[
-                            Chunk(content="Processes", style=CellStyle(foreground=lime_600)),
-                            Chunk.newline(),
-                            Chunk(content=parts[0]),
-                        ],
-                        style=pad_x_2 | weight_none | text_justify_center,
-                    ),
-                    Div(
-                        style=row | justify_children_center,
-                        children=[random_walkers(w, h, 1, first=idx == 0) for idx in range(3)],
-                    ),
-                ],
-            ),
-            Div(
-                style=row | align_children_center | align_self_stretch,
-                children=[
-                    Text(
-                        content=[
-                            Chunk(content="Threads", style=CellStyle(foreground=pink_600)),
-                            Chunk.newline(),
-                            Chunk(content=parts[1]),
-                        ],
-                        style=pad_x_2 | weight_none | text_justify_center,
-                    ),
-                    Div(style=row | justify_children_center, children=[random_walkers(w, h, 6, first=True)]),
-                ],
             ),
         ],
     )
