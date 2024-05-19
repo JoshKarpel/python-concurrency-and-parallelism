@@ -8,6 +8,8 @@ from counterweight.hooks import use_effect, use_rects, use_state
 from counterweight.keys import Key
 from counterweight.styles.utilities import *
 
+IDEAL_WIDTH = 90
+
 
 @component
 def footer(current_slide: int, total_slides: int) -> Div:
@@ -49,7 +51,7 @@ def footer(current_slide: int, total_slides: int) -> Div:
                     Text(content=f"{current_time:%Y-%m-%d %I:%M %p}", style=text_slate_200) if show_time else None,
                     Text(
                         content=f"{rects.content.width}",
-                        style=text_green_200 if rects.content.width == 90 else text_red_200,
+                        style=text_green_200 if rects.content.width == IDEAL_WIDTH else text_red_200,
                     )
                     if show_size
                     else None,

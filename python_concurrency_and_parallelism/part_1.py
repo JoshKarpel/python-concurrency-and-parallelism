@@ -357,7 +357,7 @@ def cooperative_concurrency_example() -> Div:
         style=row | align_self_stretch | align_children_center | justify_children_center | gap_children_1 | pad_x_2,
         children=[
             Text(
-                style=weight_none | text_justify_center,
+                style=weight_none | text_justify_center | pad_left_2,
                 content=[
                     Chunk(content="Coroutines", style=CellStyle(foreground=python_blue)),
                     Chunk.newline(),

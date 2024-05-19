@@ -73,6 +73,8 @@ def canvas(
 
 moves = [(x, y) for x, y in product((-1, 0, 1), repeat=2) if (x, y) != (0, 0)]
 
+random.seed(12345)
+
 
 @component
 def random_walkers(width: int, height: int, threads: int, first: bool) -> Text:

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import asyncio
 import sys
 from itertools import chain, repeat
@@ -105,10 +107,11 @@ if __name__ == "__main__":
             slide = SubElement(wrapper, "div", attrib={"class": "slide"})
             slide.append(svg.getroot())
 
+        write_current_slide(0)
         asyncio.run(
             app(
                 root,
-                dimensions=(100, 30),
+                dimensions=(90, 30),
                 headless=True,
                 autopilot=chain(
                     flatten(
@@ -127,4 +130,4 @@ if __name__ == "__main__":
 
         indent(et, space="  ")
 
-        et.write("slides.html", encoding="unicode")
+        et.write("slides.html", encoding="utf-8")
