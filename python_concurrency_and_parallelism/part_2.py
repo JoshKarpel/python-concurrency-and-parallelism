@@ -218,7 +218,15 @@ def rule_1() -> Div:
         content += [
             Chunk.newline(),
             Chunk.newline(),
-            Chunk(content="* For CPython with a GIL; see PEP 703", style=CellStyle(foreground=amber_600)),
+            Chunk(
+                content="* For CPython with a GIL and no subinterpreters!",
+                style=CellStyle(foreground=amber_600),
+            ),
+            Chunk.newline(),
+            Chunk(
+                content="See PEPs 703 and 684",
+                style=CellStyle(foreground=amber_600),
+            ),
         ]
 
     def on_key(event: KeyPressed) -> None:
@@ -497,7 +505,7 @@ def something_that_make_josh_furious() -> Div:
             make_code_example(terrible),
             Text(
                 style=weight_none,
-                content="via https://developer.nvidia.com/blog/building-a-machine-learning-microservice-with-fastapi/",
+                content="https://developer.nvidia.com/blog/building-a-machine-learning-microservice-with-fastapi/",
             ),
         ],
     )

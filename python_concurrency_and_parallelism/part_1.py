@@ -385,9 +385,9 @@ def tools() -> Div:
         ["Scheduling", "+", "Memory", "=", "Tool"],
         ["Preemptive", "+", "Shared", "=", "Threads"],
         ["Preemptive", "+", "Isolated", "=", "Processes"],
-        ["Cooperative", "+", "Shared", "=", "Async"],
+        ["Cooperative", "+", "Shared", "=", "Coroutines / Async"],
     ]
-    revealable = ["Cooperative", "+", "Isolated", "=", "Actors"]
+    revealable = ["Cooperative", "+", "Isolated", "=", "Async Actors?"]
     if revealed:
         table.append(revealable)
     else:

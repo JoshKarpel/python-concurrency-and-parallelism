@@ -14,7 +14,7 @@ IDEAL_WIDTH = 90
 @component
 def footer(current_slide: int, total_slides: int) -> Div:
     current_time, set_current_time = use_state(datetime.now())
-    show_time, set_show_time = use_state(True)
+    show_time, set_show_time = use_state(False)
     show_size, set_show_size = use_state(False)
 
     def on_key(event: KeyPressed) -> None:
