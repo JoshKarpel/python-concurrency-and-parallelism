@@ -42,6 +42,68 @@ def part_1() -> Div:
 
 
 @component
+def the_goal() -> Div:
+    half_and_half_div_style = col | align_children_center | gap_children_1
+
+    c = Div(
+        style=half_and_half_div_style,
+        children=[
+            Text(
+                content=[
+                    Chunk(content="Computers are"),
+                    Chunk.space(),
+                    Chunk(content="so fast", style=CellStyle(foreground=green_600)),
+                    Chunk.space(),
+                    Chunk(content="that they often need to"),
+                    Chunk.space(),
+                    Chunk(content="wait", style=CellStyle(foreground=red_600)),
+                    Chunk.space(),
+                    Chunk(content="for things to happen"),
+                ],
+                style=weight_none | text_justify_center,
+            ),
+        ],
+    )
+
+    return Div(
+        style=row | align_self_stretch | align_children_center | justify_children_space_around,
+        children=[c],
+    )
+
+
+@component
+def the_table() -> Div:
+    return Div(
+        style=col | align_self_stretch | align_children_center | justify_children_center | gap_children_2,
+        children=[
+            Text(
+                style=weight_none | border_heavy | pad_x_1,
+                content="""\
+Action                        Time       Relative Time
+---------------------------   ---------  -------------
+1 CPU cycle                   0.3 ns     1 s
+Level 1 cache access          0.9 ns     3 s
+Level 2 cache access          2.8 ns     9 s
+Level 3 cache access          12.9 ns    43 s
+Main memory access            120 ns     6 min
+Solid-state disk I/O          50-150 μs  2-6 days
+Rotational disk I/O           1-10 ms    1-12 months
+Internet: SF to NYC           40 ms      4 years
+Internet: SF to UK            81 ms      8 years
+Internet: SF to Australia     183 ms     19 years
+OS virtualization reboot      4 s        423 years
+SCSI command time-out         30 s       3000 years
+Physical system reboot        5 m        32 millenia""",
+            ),
+            Text(
+                style=weight_none,
+                content="Adapted from Systems Performance: Enterprise and the Cloud, by Brendan Gregg",
+            ),
+        ],
+    )
+
+
+@component
 def definitions() -> Div:
     arrow_shift, set_arrow_shift = use_state(0)
 
@@ -426,6 +488,8 @@ def tools() -> Div:
 
 PART_1 = [
     part_1,
+    the_goal,
+    the_table,
     definitions,
     computers,
     processes_and_threads,

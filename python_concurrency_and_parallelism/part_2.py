@@ -264,7 +264,7 @@ def corollary_1() -> Div:
                     Chunk.newline(),
                     Chunk(content="automatically", style=CellStyle(foreground=green_600)),
                     Chunk.newline(),
-                    Chunk(content="release the GIL when possible"),
+                    Chunk(content="have control taken away from them"),
                 ],
                 style=weight_none | text_justify_center,
             ),
@@ -500,11 +500,11 @@ async def predict(input_data: schemas.MultipleCarTransactionInputData) -> Any:
 
 def something_that_make_josh_furious() -> Div:
     return Div(
-        style=col | align_self_center | align_children_center,
+        style=col | align_self_stretch | align_children_center | justify_children_center | gap_children_2,
         children=[
             make_code_example(terrible),
             Text(
-                style=weight_none,
+                style=weight_none | align_self_end,
                 content="https://developer.nvidia.com/blog/building-a-machine-learning-microservice-with-fastapi/",
             ),
         ],
